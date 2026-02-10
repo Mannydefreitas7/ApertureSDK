@@ -1,6 +1,7 @@
 import Foundation
 
-/// ApertureSDK - A powerful SDK for managing and processing data
+/// ApertureSDK - A powerful Swift Video Editor SDK for iOS and macOS
+/// Provides comprehensive video editing capabilities including trimming, merging, effects, overlays, and export functionality.
 public final class ApertureSDK {
     
     /// Shared singleton instance

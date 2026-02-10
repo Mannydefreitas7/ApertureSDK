@@ -1,80 +1,80 @@
-import XCTest
+import Testing
 @testable import ApertureSDK
 
 #if canImport(AVFoundation)
 import AVFoundation
 
 @available(iOS 15.0, macOS 12.0, *)
-final class VideoProjectTests: XCTestCase {
+struct VideoProjectTests {
     
-    func testProjectInitialization() {
+    @Test func projectInitialization() {
         let project = VideoProject(name: "Test Project")
         
-        XCTAssertEqual(project.name, "Test Project")
-        XCTAssertTrue(project.assets.isEmpty)
-        XCTAssertEqual(project.resolution, CGSize(width: 1920, height: 1080))
-        XCTAssertEqual(project.frameRate, 30)
+        #expect(project.name == "Test Project")
+        #expect(project.assets.isEmpty)
+        #expect(project.resolution == CGSize(width: 1920, height: 1080))
+        #expect(project.frameRate == 30)
     }
     
-    func testProjectCustomResolution() {
+    @Test func projectCustomResolution() {
         let project = VideoProject(
             name: "4K Project",
             resolution: CGSize(width: 3840, height: 2160),
             frameRate: 60
         )
         
-        XCTAssertEqual(project.resolution, CGSize(width: 3840, height: 2160))
-        XCTAssertEqual(project.frameRate, 60)
+        #expect(project.resolution == CGSize(width: 3840, height: 2160))
+        #expect(project.frameRate == 60)
     }
     
-    func testTimelineTracksInitialization() {
+    @Test func timelineTracksInitialization() {
         let timeline = Timeline()
         
-        XCTAssertTrue(timeline.tracks.isEmpty)
-        XCTAssertEqual(timeline.currentTime, .zero)
-        XCTAssertEqual(timeline.totalDuration, .zero)
+        #expect(timeline.tracks.isEmpty)
+        #expect(timeline.currentTime == .zero)
+        #expect(timeline.totalDuration == .zero)
     }
     
-    func testAddTrackToTimeline() {
+    @Test func addTrackToTimeline() {
         let timeline = Timeline()
         
         let videoTrack = timeline.addTrack(type: .video)
-        XCTAssertEqual(timeline.tracks.count, 1)
-        XCTAssertEqual(videoTrack.type, .video)
+        #expect(timeline.tracks.count == 1)
+        #expect(videoTrack.type == .video)
         
         let audioTrack = timeline.addTrack(type: .audio)
-        XCTAssertEqual(timeline.tracks.count, 2)
-        XCTAssertEqual(audioTrack.type, .audio)
+        #expect(timeline.tracks.count == 2)
+        #expect(audioTrack.type == .audio)
     }
     
-    func testRemoveTrackFromTimeline() {
+    @Test func removeTrackFromTimeline() {
         let timeline = Timeline()
         
         let track = timeline.addTrack(type: .video)
-        XCTAssertEqual(timeline.tracks.count, 1)
+        #expect(timeline.tracks.count == 1)
         
         timeline.removeTrack(track)
-        XCTAssertEqual(timeline.tracks.count, 0)
+        #expect(timeline.tracks.count == 0)
     }
     
-    func testExportPresetResolutions() {
-        XCTAssertEqual(ExportPreset.hd720p.resolution, CGSize(width: 1280, height: 720))
-        XCTAssertEqual(ExportPreset.hd1080p.resolution, CGSize(width: 1920, height: 1080))
-        XCTAssertEqual(ExportPreset.hd4K.resolution, CGSize(width: 3840, height: 2160))
-        XCTAssertEqual(ExportPreset.instagram.resolution, CGSize(width: 1080, height: 1080))
-        XCTAssertEqual(ExportPreset.twitter.resolution, CGSize(width: 1280, height: 720))
+    @Test func exportPresetResolutions() {
+        #expect(ExportPreset.hd720p.resolution == CGSize(width: 1280, height: 720))
+        #expect(ExportPreset.hd1080p.resolution == CGSize(width: 1920, height: 1080))
+        #expect(ExportPreset.hd4K.resolution == CGSize(width: 3840, height: 2160))
+        #expect(ExportPreset.instagram.resolution == CGSize(width: 1080, height: 1080))
+        #expect(ExportPreset.twitter.resolution == CGSize(width: 1280, height: 720))
     }
     
-    func testExportPresetBitrates() {
-        XCTAssertEqual(ExportPreset.hd720p.bitrate, 5_000_000)
-        XCTAssertEqual(ExportPreset.hd1080p.bitrate, 8_000_000)
-        XCTAssertEqual(ExportPreset.hd4K.bitrate, 20_000_000)
+    @Test func exportPresetBitrates() {
+        #expect(ExportPreset.hd720p.bitrate == 5_000_000)
+        #expect(ExportPreset.hd1080p.bitrate == 8_000_000)
+        #expect(ExportPreset.hd4K.bitrate == 20_000_000)
     }
     
-    func testCustomExportPreset() {
+    @Test func customExportPreset() {
         let customPreset = ExportPreset.custom(width: 1920, height: 1080, bitrate: 10_000_000)
-        XCTAssertEqual(customPreset.resolution, CGSize(width: 1920, height: 1080))
-        XCTAssertEqual(customPreset.bitrate, 10_000_000)
+        #expect(customPreset.resolution == CGSize(width: 1920, height: 1080))
+        #expect(customPreset.bitrate == 10_000_000)
     }
 }
 

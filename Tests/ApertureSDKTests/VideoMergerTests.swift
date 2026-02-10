@@ -1,15 +1,15 @@
-import XCTest
+import Testing
 @testable import ApertureSDK
 
 #if canImport(AVFoundation)
 import AVFoundation
 
 @available(iOS 15.0, macOS 12.0, *)
-final class VideoMergerTests: XCTestCase {
+struct VideoMergerTests {
     
-    func testMergerExists() {
+    @Test func mergerExists() {
         // Test that VideoMerger class exists and can be referenced
-        XCTAssertNotNil(VideoMerger.self)
+        #expect(VideoMerger.self != nil)
     }
 }
 

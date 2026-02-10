@@ -1,15 +1,15 @@
-import XCTest
+import Testing
 @testable import ApertureSDK
 
 #if canImport(AVFoundation)
 import AVFoundation
 
 @available(iOS 15.0, macOS 12.0, *)
-final class VideoTrimmerTests: XCTestCase {
+struct VideoTrimmerTests {
     
-    func testTrimmerExists() {
+    @Test func trimmerExists() {
         // Test that VideoTrimmer class exists and can be referenced
-        XCTAssertNotNil(VideoTrimmer.self)
+        #expect(VideoTrimmer.self != nil)
     }
 }
 

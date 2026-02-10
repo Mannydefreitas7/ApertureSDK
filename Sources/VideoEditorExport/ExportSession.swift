@@ -23,6 +23,9 @@ public actor ExportSession {
     private var currentExportSession: AVAssetExportSession?
     private var isCancelled: Bool = false
     
+    /// Progress polling interval in nanoseconds (0.1 seconds)
+    private static let progressPollingInterval: UInt64 = 100_000_000
+    
     public init(compositionBuilder: CompositionBuilder = CompositionBuilder()) {
         self.compositionBuilder = compositionBuilder
     }
@@ -32,7 +35,8 @@ public actor ExportSession {
     ///   - project: The project to export
     ///   - preset: Export preset configuration
     ///   - outputURL: The output file URL
-    ///   - progress: Progress callback
+    ///   - progress: Progress callback. Marked `@Sendable` because it is called from
+    ///     the actor's context — wrap UI updates in `Task { @MainActor in … }`.
     public func export(
         project: Project,
         preset: ExportPreset,
@@ -77,7 +81,7 @@ public actor ExportSession {
         let progressTask = Task { [weak exportSession] in
             while let session = exportSession, session.status == .exporting || session.status == .waiting {
                 progress(ExportProgress(fractionCompleted: Double(session.progress)))
-                try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+                try? await Task.sleep(nanoseconds: ExportSession.progressPollingInterval)
             }
         }
         

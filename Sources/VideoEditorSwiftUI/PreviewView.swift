@@ -48,7 +48,7 @@ public struct PreviewView: View {
             CGFloat(project.canvasSize.width / max(project.canvasSize.height, 1)),
             contentMode: .fit
         )
-        .task(id: project.tracks.hashValue) {
+        .task(id: trackFingerprint) {
             await buildPlayerFromProject()
         }
         .onChange(of: currentTime) { newTime in
@@ -56,6 +56,15 @@ public struct PreviewView: View {
             let cmTime = CMTime(seconds: newTime, preferredTimescale: 600)
             player.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero)
         }
+    }
+    
+    /// Stable fingerprint of the track layout that re-triggers the preview build
+    /// when clips are added, removed, or reordered. Uses track/clip IDs and counts
+    /// to avoid hash collisions.
+    private var trackFingerprint: String {
+        project.tracks.map { track in
+            "\(track.id):\(track.clips.map { $0.id.uuidString }.joined(separator: ","))"
+        }.joined(separator: "|")
     }
     
     private func buildPlayerFromProject() async {

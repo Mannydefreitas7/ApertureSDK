@@ -1,7 +1,22 @@
 import Foundation
+@_exported import VideoEditorCore
+@_exported import VideoEditorEngine
+@_exported import VideoEditorExport
+@_exported import VideoEditorSwiftUI
+@_exported import VideoEditorAssets
 
 /// ApertureSDK - A powerful Swift Video Editor SDK for iOS and macOS
 /// Provides comprehensive video editing capabilities including trimming, merging, effects, overlays, and export functionality.
+///
+/// This is the umbrella module that re-exports all sub-modules:
+/// - `VideoEditorCore`: Pure Swift models + timeline logic (Codable, no AVFoundation)
+/// - `VideoEditorEngine`: AVFoundation + CoreImage render pipeline
+/// - `VideoEditorSwiftUI`: SwiftUI components + bindings
+/// - `VideoEditorExport`: Export session + presets
+/// - `VideoEditorAssets`: LUT loader, bundled resources
+///
+/// You can import individual sub-modules for finer-grained control, or import
+/// `ApertureSDK` to get everything at once.
 public final class ApertureSDK {
     
     /// Shared singleton instance

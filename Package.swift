@@ -14,14 +14,54 @@ let package = Package(
         .library(
             name: "ApertureSDK",
             targets: ["ApertureSDK"]),
+        .library(
+            name: "VideoEditorCore",
+            targets: ["VideoEditorCore"]),
+        .library(
+            name: "VideoEditorEngine",
+            targets: ["VideoEditorEngine"]),
+        .library(
+            name: "VideoEditorExport",
+            targets: ["VideoEditorExport"]),
+        .library(
+            name: "VideoEditorSwiftUI",
+            targets: ["VideoEditorSwiftUI"]),
+        .library(
+            name: "VideoEditorAssets",
+            targets: ["VideoEditorAssets"]),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "ApertureSDK"),
+            name: "ApertureSDK",
+            dependencies: [
+                "VideoEditorCore",
+                "VideoEditorEngine",
+                "VideoEditorExport",
+                "VideoEditorSwiftUI",
+                "VideoEditorAssets",
+            ]),
+        .target(
+            name: "VideoEditorCore"),
+        .target(
+            name: "VideoEditorEngine",
+            dependencies: ["VideoEditorCore"]),
+        .target(
+            name: "VideoEditorExport",
+            dependencies: ["VideoEditorCore", "VideoEditorEngine"]),
+        .target(
+            name: "VideoEditorSwiftUI",
+            dependencies: ["VideoEditorCore", "VideoEditorEngine", "VideoEditorExport"]),
+        .target(
+            name: "VideoEditorAssets",
+            dependencies: ["VideoEditorCore"],
+            resources: [.process("Resources")]),
         .testTarget(
             name: "ApertureSDKTests",
             dependencies: ["ApertureSDK"]),
+        .testTarget(
+            name: "VideoEditorCoreTests",
+            dependencies: ["VideoEditorCore"]),
     ]
 )

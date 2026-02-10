@@ -182,6 +182,7 @@ struct ClipView: View {
         case .audio: return .orange
         case .image: return .purple
         case .text: return .pink
+        case .compound: return .cyan
         }
     }
     

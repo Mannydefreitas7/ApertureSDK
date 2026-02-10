@@ -17,6 +17,9 @@ let package = Package(
         .library(
             name: "VideoEditorCore",
             targets: ["VideoEditorCore"]),
+        .library(
+            name: "VideoEditorEngine",
+            targets: ["VideoEditorEngine"]),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -25,6 +28,9 @@ let package = Package(
             name: "ApertureSDK"),
         .target(
             name: "VideoEditorCore"),
+        .target(
+            name: "VideoEditorEngine",
+            dependencies: ["VideoEditorCore"]),
         .testTarget(
             name: "ApertureSDKTests",
             dependencies: ["ApertureSDK"]),

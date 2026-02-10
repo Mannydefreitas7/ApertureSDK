@@ -48,6 +48,39 @@ public struct Project: Codable, Identifiable, Sendable {
         tracks.map { $0.totalDuration }.max() ?? 0
     }
     
+    /// Group clips within a track into a compound clip.
+    ///
+    /// - Parameters:
+    ///   - clipIDs: IDs of clips to group.
+    ///   - trackID: ID of the track containing the clips.
+    /// - Returns: The compound clip, or `nil` if the track was not found or
+    ///   fewer than two matching clips exist.
+    @discardableResult
+    public mutating func groupClips(ids clipIDs: Set<UUID>, inTrack trackID: UUID) -> Clip? {
+        guard let trackIndex = tracks.firstIndex(where: { $0.id == trackID }) else {
+            return nil
+        }
+        let result = tracks[trackIndex].groupClips(ids: clipIDs)
+        if result != nil { modifiedAt = Date() }
+        return result
+    }
+    
+    /// Ungroup a compound clip within a track, replacing it with its inner clips.
+    ///
+    /// - Parameters:
+    ///   - clipID: ID of the compound clip to ungroup.
+    ///   - trackID: ID of the track containing the compound clip.
+    /// - Returns: The inner clips, or `nil` if the track or compound clip was not found.
+    @discardableResult
+    public mutating func ungroupCompoundClip(id clipID: UUID, inTrack trackID: UUID) -> [Clip]? {
+        guard let trackIndex = tracks.firstIndex(where: { $0.id == trackID }) else {
+            return nil
+        }
+        let result = tracks[trackIndex].ungroupCompoundClip(id: clipID)
+        if result != nil { modifiedAt = Date() }
+        return result
+    }
+    
     /// Serialize project to JSON data
     public func toJSON() throws -> Data {
         let encoder = JSONEncoder()

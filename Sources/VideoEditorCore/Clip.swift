@@ -14,6 +14,8 @@ public struct Clip: Codable, Identifiable, Sendable {
     public var isMuted: Bool
     /// Text content for text clips. Only used when `type == .text`.
     public var textContent: TextClipContent?
+    /// Sub-timeline tracks for compound clips. Only used when `type == .compound`.
+    public var subTimeline: [Track]?
     
     /// The type of clip
     public enum ClipType: String, Codable, Sendable {
@@ -21,6 +23,7 @@ public struct Clip: Codable, Identifiable, Sendable {
         case audio
         case image
         case text
+        case compound
     }
     
     public init(
@@ -34,7 +37,8 @@ public struct Clip: Codable, Identifiable, Sendable {
         volume: Double = 1.0,
         effects: [Effect] = [],
         isMuted: Bool = false,
-        textContent: TextClipContent? = nil
+        textContent: TextClipContent? = nil,
+        subTimeline: [Track]? = nil
     ) {
         self.id = id
         self.type = type
@@ -47,6 +51,7 @@ public struct Clip: Codable, Identifiable, Sendable {
         self.effects = effects
         self.isMuted = isMuted
         self.textContent = textContent
+        self.subTimeline = subTimeline
     }
     
     /// Trim the clip to new start/duration
@@ -67,5 +72,36 @@ public struct Clip: Codable, Identifiable, Sendable {
         second.timeRange = ClipTimeRange(start: timeRange.start + offset, duration: timeRange.duration - offset)
         
         return (first, second)
+    }
+    
+    /// Total duration of the sub-timeline (for compound clips)
+    public var subTimelineDuration: Double {
+        subTimeline?.map { $0.totalDuration }.max() ?? 0
+    }
+    
+    /// Create a compound clip from a list of clips
+    ///
+    /// Groups the provided clips into a single compound clip whose `subTimeline`
+    /// contains one track holding the clips. The compound clip's `timeRange`
+    /// duration equals the sum of the grouped clips' durations.
+    ///
+    /// - Parameters:
+    ///   - clips: Clips to group.
+    ///   - trackType: Track type for the inner track (default `.video`).
+    /// - Returns: A compound clip, or `nil` if `clips` is empty.
+    public static func makeCompound(
+        from clips: [Clip],
+        trackType: Track.TrackType = .video
+    ) -> Clip? {
+        guard !clips.isEmpty else { return nil }
+        
+        let totalDuration = clips.reduce(0) { $0 + $1.timeRange.duration }
+        let innerTrack = Track(type: trackType, clips: clips)
+        
+        return Clip(
+            type: .compound,
+            timeRange: ClipTimeRange(start: 0, duration: totalDuration),
+            subTimeline: [innerTrack]
+        )
     }
 }

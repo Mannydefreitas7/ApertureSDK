@@ -34,7 +34,14 @@ let package = Package(
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "ApertureSDK"),
+            name: "ApertureSDK",
+            dependencies: [
+                "VideoEditorCore",
+                "VideoEditorEngine",
+                "VideoEditorExport",
+                "VideoEditorSwiftUI",
+                "VideoEditorAssets",
+            ]),
         .target(
             name: "VideoEditorCore"),
         .target(
@@ -53,5 +60,8 @@ let package = Package(
         .testTarget(
             name: "ApertureSDKTests",
             dependencies: ["ApertureSDK"]),
+        .testTarget(
+            name: "VideoEditorCoreTests",
+            dependencies: ["VideoEditorCore"]),
     ]
 )

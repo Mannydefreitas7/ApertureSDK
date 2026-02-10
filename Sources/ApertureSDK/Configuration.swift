@@ -24,8 +24,14 @@ public struct Configuration {
     }
     
     /// Validates the configuration
-    var isValid: Bool {
-        // Add validation logic as needed
+    /// Returns true if the configuration is valid, false otherwise
+    public var isValid: Bool {
+        // Validate timeout interval is positive
+        guard timeoutInterval > 0 else {
+            return false
+        }
+        
+        // Additional validation can be added here as needed
         return true
     }
 }

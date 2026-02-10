@@ -38,4 +38,22 @@ final class ApertureSDKTests: XCTestCase {
         let sdk = ApertureSDK.shared
         XCTAssertNoThrow(try sdk.initialize())
     }
+    
+    func testConfigurationValidation() {
+        let validConfig = Configuration(timeoutInterval: 60)
+        XCTAssertTrue(validConfig.isValid)
+        
+        let invalidConfig = Configuration(timeoutInterval: -10)
+        XCTAssertFalse(invalidConfig.isValid)
+    }
+    
+    func testInvalidConfigurationThrows() {
+        let sdk = ApertureSDK.shared
+        let invalidConfig = Configuration(timeoutInterval: 0)
+        sdk.configure(with: invalidConfig)
+        
+        XCTAssertThrowsError(try sdk.initialize()) { error in
+            XCTAssertEqual(error as? ApertureError, ApertureError.invalidConfiguration)
+        }
+    }
 }

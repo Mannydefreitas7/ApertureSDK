@@ -23,7 +23,7 @@ permissions:
 jobs:
   release:
     name: Build, Test & Release
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -34,6 +34,7 @@ public actor AssetLoader {
     }
     
     /// Generate a thumbnail from a video asset
+    @available(iOS 16, macOS 13, *)
     public func generateThumbnail(from url: URL, at time: Double) async throws -> CGImage {
         let asset = try await loadAsset(from: url)
         let imageGenerator = AVAssetImageGenerator(asset: asset)

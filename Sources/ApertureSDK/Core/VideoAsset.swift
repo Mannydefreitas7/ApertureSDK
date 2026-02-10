@@ -86,6 +86,7 @@ public class VideoAsset: Identifiable {
     /// Generate a thumbnail at a specific time
     /// - Parameter time: The time to generate the thumbnail
     /// - Returns: A CGImage thumbnail
+    @available(iOS 16, macOS 13, *)
     public func generateThumbnail(at time: CMTime) async throws -> CGImage {
         let imageGenerator = AVAssetImageGenerator(asset: asset)
         imageGenerator.appliesPreferredTrackTransform = true

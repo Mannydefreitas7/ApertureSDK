@@ -1,41 +1,41 @@
-import XCTest
+import Testing
 @testable import ApertureSDK
 
-final class ApertureErrorTests: XCTestCase {
+struct ApertureErrorTests {
     
-    func testInvalidAssetError() {
+    @Test func invalidAssetError() {
         let error = ApertureError.invalidAsset
-        XCTAssertEqual(error.localizedDescription, "Invalid video asset or cannot be loaded")
+        #expect(error.localizedDescription == "Invalid video asset or cannot be loaded")
     }
     
-    func testExportFailedError() {
+    @Test func exportFailedError() {
         let error = ApertureError.exportFailed
-        XCTAssertEqual(error.localizedDescription, "Video export operation failed")
+        #expect(error.localizedDescription == "Video export operation failed")
     }
     
-    func testUnsupportedFormatError() {
+    @Test func unsupportedFormatError() {
         let error = ApertureError.unsupportedFormat
-        XCTAssertEqual(error.localizedDescription, "Unsupported video format")
+        #expect(error.localizedDescription == "Unsupported video format")
     }
     
-    func testInsufficientPermissionsError() {
+    @Test func insufficientPermissionsError() {
         let error = ApertureError.insufficientPermissions
-        XCTAssertEqual(error.localizedDescription, "Insufficient permissions to access the resource")
+        #expect(error.localizedDescription == "Insufficient permissions to access the resource")
     }
     
-    func testInvalidTimeRangeError() {
+    @Test func invalidTimeRangeError() {
         let error = ApertureError.invalidTimeRange
-        XCTAssertEqual(error.localizedDescription, "Invalid time range specified")
+        #expect(error.localizedDescription == "Invalid time range specified")
     }
     
-    func testErrorEquality() {
-        XCTAssertEqual(ApertureError.invalidAsset, ApertureError.invalidAsset)
-        XCTAssertEqual(ApertureError.exportFailed, ApertureError.exportFailed)
-        XCTAssertEqual(ApertureError.unsupportedFormat, ApertureError.unsupportedFormat)
-        XCTAssertEqual(ApertureError.insufficientPermissions, ApertureError.insufficientPermissions)
-        XCTAssertEqual(ApertureError.invalidTimeRange, ApertureError.invalidTimeRange)
+    @Test func errorEquality() {
+        #expect(ApertureError.invalidAsset == ApertureError.invalidAsset)
+        #expect(ApertureError.exportFailed == ApertureError.exportFailed)
+        #expect(ApertureError.unsupportedFormat == ApertureError.unsupportedFormat)
+        #expect(ApertureError.insufficientPermissions == ApertureError.insufficientPermissions)
+        #expect(ApertureError.invalidTimeRange == ApertureError.invalidTimeRange)
         
-        XCTAssertNotEqual(ApertureError.invalidAsset, ApertureError.exportFailed)
-        XCTAssertNotEqual(ApertureError.unsupportedFormat, ApertureError.invalidTimeRange)
+        #expect(ApertureError.invalidAsset != ApertureError.exportFailed)
+        #expect(ApertureError.unsupportedFormat != ApertureError.invalidTimeRange)
     }
 }

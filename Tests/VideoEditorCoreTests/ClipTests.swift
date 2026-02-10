@@ -1,74 +1,72 @@
-import XCTest
+import Foundation
+import Testing
 @testable import VideoEditorCore
 
-final class ClipTests: XCTestCase {
+struct ClipTests {
     
-    func testClipInitialization() {
+    @Test func clipInitialization() {
         let clip = Clip(
             type: .video,
             timeRange: ClipTimeRange(start: 0, duration: 10),
             sourceURL: URL(string: "file:///test.mp4")
         )
         
-        XCTAssertEqual(clip.type, .video)
-        XCTAssertEqual(clip.timeRange.start, 0)
-        XCTAssertEqual(clip.timeRange.duration, 10)
-        XCTAssertEqual(clip.opacity, 1.0)
-        XCTAssertEqual(clip.volume, 1.0)
-        XCTAssertEqual(clip.transform, .identity)
-        XCTAssertTrue(clip.effects.isEmpty)
-        XCTAssertFalse(clip.isMuted)
+        #expect(clip.type == Clip.ClipType.video)
+        #expect(clip.timeRange.start == 0)
+        #expect(clip.timeRange.duration == 10)
+        #expect(clip.opacity == 1.0)
+        #expect(clip.volume == 1.0)
+        #expect(clip.transform == ClipTransform.identity)
+        #expect(clip.effects.isEmpty)
+        #expect(!clip.isMuted)
     }
     
-    func testClipTrim() {
+    @Test func clipTrim() {
         var clip = Clip(type: .video, timeRange: ClipTimeRange(start: 0, duration: 10))
         
         clip.trim(start: 2, duration: 5)
-        XCTAssertEqual(clip.timeRange.start, 2)
-        XCTAssertEqual(clip.timeRange.duration, 5)
+        #expect(clip.timeRange.start == 2)
+        #expect(clip.timeRange.duration == 5)
     }
     
-    func testClipSplit() {
+    @Test func clipSplit() throws {
         let clip = Clip(
             type: .video,
             timeRange: ClipTimeRange(start: 0, duration: 10),
             sourceURL: URL(string: "file:///test.mp4")
         )
         
-        guard let (first, second) = clip.split(at: 4) else {
-            XCTFail("Split should succeed")
-            return
-        }
+        let (first, second) = try #require(clip.split(at: 4), "Split should succeed")
         
-        XCTAssertEqual(first.timeRange.start, 0)
-        XCTAssertEqual(first.timeRange.duration, 4)
-        XCTAssertEqual(second.timeRange.start, 4)
-        XCTAssertEqual(second.timeRange.duration, 6)
+        #expect(first.timeRange.start == 0)
+        #expect(first.timeRange.duration == 4)
+        #expect(second.timeRange.start == 4)
+        #expect(second.timeRange.duration == 6)
         
         // IDs should be different
-        XCTAssertNotEqual(first.id, second.id)
-        XCTAssertNotEqual(first.id, clip.id)
+        #expect(first.id != second.id)
+        #expect(first.id != clip.id)
     }
     
-    func testClipSplitAtInvalidOffset() {
+    @Test func clipSplitAtInvalidOffset() {
         let clip = Clip(type: .video, timeRange: ClipTimeRange(start: 0, duration: 10))
         
         // Split at 0 should fail
-        XCTAssertNil(clip.split(at: 0))
+        #expect(clip.split(at: 0) == nil)
         
         // Split at or past duration should fail
-        XCTAssertNil(clip.split(at: 10))
-        XCTAssertNil(clip.split(at: 15))
+        #expect(clip.split(at: 10) == nil)
+        #expect(clip.split(at: 15) == nil)
     }
     
-    func testClipTypes() {
-        XCTAssertEqual(Clip(type: .video, timeRange: .zero).type, .video)
-        XCTAssertEqual(Clip(type: .audio, timeRange: .zero).type, .audio)
-        XCTAssertEqual(Clip(type: .image, timeRange: .zero).type, .image)
-        XCTAssertEqual(Clip(type: .text, timeRange: .zero).type, .text)
+    @Test func clipTypes() {
+        #expect(Clip(type: .video, timeRange: .zero).type == .video)
+        #expect(Clip(type: .audio, timeRange: .zero).type == .audio)
+        #expect(Clip(type: .image, timeRange: .zero).type == .image)
+        #expect(Clip(type: .text, timeRange: .zero).type == .text)
     }
     
-    func testClipCodable() throws {
+    @Test func clipCodable() throws {
         let clip = Clip(
             type: .video,
             timeRange: ClipTimeRange(start: 2, duration: 8),
@@ -85,12 +83,12 @@ final class ClipTests: XCTestCase {
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(Clip.self, from: data)
         
-        XCTAssertEqual(decoded.type, .video)
-        XCTAssertEqual(decoded.timeRange.start, 2)
-        XCTAssertEqual(decoded.timeRange.duration, 8)
-        XCTAssertEqual(decoded.opacity, 0.8)
-        XCTAssertEqual(decoded.volume, 0.5)
-        XCTAssertEqual(decoded.effects.count, 2)
-        XCTAssertTrue(decoded.isMuted)
+        #expect(decoded.type == Clip.ClipType.video)
+        #expect(decoded.timeRange.start == 2)
+        #expect(decoded.timeRange.duration == 8)
+        #expect(decoded.opacity == 0.8)
+        #expect(decoded.volume == 0.5)
+        #expect(decoded.effects.count == 2)
+        #expect(decoded.isMuted)
     }
 }

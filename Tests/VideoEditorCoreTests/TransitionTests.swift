@@ -1,29 +1,30 @@
-import XCTest
+import Foundation
+import Testing
 @testable import VideoEditorCore
 
-final class TransitionTests: XCTestCase {
+struct TransitionTests {
     
-    func testTransitionFactoryMethods() {
+    @Test func transitionFactoryMethods() {
         let crossDissolve = Transition.crossDissolve(duration: 1.0)
-        XCTAssertEqual(crossDissolve.type, .crossDissolve)
-        XCTAssertEqual(crossDissolve.duration, 1.0)
+        #expect(crossDissolve.type == .crossDissolve)
+        #expect(crossDissolve.duration == 1.0)
         
         let slide = Transition.slideLeft(duration: 0.5)
-        XCTAssertEqual(slide.type, .slideLeft)
-        XCTAssertEqual(slide.duration, 0.5)
+        #expect(slide.type == .slideLeft)
+        #expect(slide.duration == 0.5)
         
         let fade = Transition.fade(duration: 0.3)
-        XCTAssertEqual(fade.type, .fade)
-        XCTAssertEqual(fade.duration, 0.3)
+        #expect(fade.type == .fade)
+        #expect(fade.duration == 0.3)
     }
     
-    func testTransitionCodable() throws {
+    @Test func transitionCodable() throws {
         let transition = Transition.crossDissolve(duration: 1.5)
         
         let data = try JSONEncoder().encode(transition)
         let decoded = try JSONDecoder().decode(Transition.self, from: data)
         
-        XCTAssertEqual(decoded.type, .crossDissolve)
-        XCTAssertEqual(decoded.duration, 1.5)
+        #expect(decoded.type == Transition.TransitionType.crossDissolve)
+        #expect(decoded.duration == 1.5)
     }
 }

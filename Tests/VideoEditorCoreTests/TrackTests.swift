@@ -1,37 +1,37 @@
-import XCTest
+import Testing
 @testable import VideoEditorCore
 
-final class TrackTests: XCTestCase {
+struct TrackTests {
     
-    func testTrackInitialization() {
+    @Test func trackInitialization() {
         let track = Track(type: .video)
         
-        XCTAssertEqual(track.type, .video)
-        XCTAssertTrue(track.clips.isEmpty)
-        XCTAssertFalse(track.isMuted)
-        XCTAssertFalse(track.isLocked)
-        XCTAssertEqual(track.totalDuration, 0)
+        #expect(track.type == .video)
+        #expect(track.clips.isEmpty)
+        #expect(!track.isMuted)
+        #expect(!track.isLocked)
+        #expect(track.totalDuration == 0)
     }
     
-    func testTrackAddClip() {
+    @Test func trackAddClip() {
         var track = Track(type: .video)
         let clip = Clip(type: .video, timeRange: ClipTimeRange(start: 0, duration: 5))
         
         track.addClip(clip)
-        XCTAssertEqual(track.clips.count, 1)
-        XCTAssertEqual(track.totalDuration, 5)
+        #expect(track.clips.count == 1)
+        #expect(track.totalDuration == 5)
     }
     
-    func testTrackRemoveClip() {
+    @Test func trackRemoveClip() {
         var track = Track(type: .video)
         let clip = Clip(type: .video, timeRange: ClipTimeRange(start: 0, duration: 5))
         track.addClip(clip)
         
         track.removeClip(id: clip.id)
-        XCTAssertTrue(track.clips.isEmpty)
+        #expect(track.clips.isEmpty)
     }
     
-    func testTrackMoveClip() {
+    @Test func trackMoveClip() {
         var track = Track(type: .video)
         let clip1 = Clip(type: .video, timeRange: ClipTimeRange(start: 0, duration: 5))
         let clip2 = Clip(type: .video, timeRange: ClipTimeRange(start: 0, duration: 3))
@@ -39,11 +39,11 @@ final class TrackTests: XCTestCase {
         track.addClip(clip2)
         
         track.moveClip(from: 0, to: 1)
-        XCTAssertEqual(track.clips[0].id, clip2.id)
-        XCTAssertEqual(track.clips[1].id, clip1.id)
+        #expect(track.clips[0].id == clip2.id)
+        #expect(track.clips[1].id == clip1.id)
     }
     
-    func testTrackClipAtTime() {
+    @Test func trackClipAtTime() {
         var track = Track(type: .video)
         let clip1 = Clip(type: .video, timeRange: ClipTimeRange(start: 0, duration: 5))
         let clip2 = Clip(type: .video, timeRange: ClipTimeRange(start: 0, duration: 3))
@@ -51,18 +51,18 @@ final class TrackTests: XCTestCase {
         track.addClip(clip2)
         
         let foundClip1 = track.clip(at: 2)
-        XCTAssertEqual(foundClip1?.id, clip1.id)
+        #expect(foundClip1?.id == clip1.id)
         
         let foundClip2 = track.clip(at: 6)
-        XCTAssertEqual(foundClip2?.id, clip2.id)
+        #expect(foundClip2?.id == clip2.id)
         
         let noClip = track.clip(at: 10)
-        XCTAssertNil(noClip)
+        #expect(noClip == nil)
     }
     
-    func testTrackTypes() {
-        XCTAssertEqual(Track(type: .video).type, .video)
-        XCTAssertEqual(Track(type: .audio).type, .audio)
-        XCTAssertEqual(Track(type: .overlay).type, .overlay)
+    @Test func trackTypes() {
+        #expect(Track(type: .video).type == .video)
+        #expect(Track(type: .audio).type == .audio)
+        #expect(Track(type: .overlay).type == .overlay)
     }
 }

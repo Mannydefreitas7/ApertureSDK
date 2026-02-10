@@ -23,6 +23,9 @@ let package = Package(
         .library(
             name: "VideoEditorExport",
             targets: ["VideoEditorExport"]),
+        .library(
+            name: "VideoEditorSwiftUI",
+            targets: ["VideoEditorSwiftUI"]),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -37,6 +40,9 @@ let package = Package(
         .target(
             name: "VideoEditorExport",
             dependencies: ["VideoEditorCore", "VideoEditorEngine"]),
+        .target(
+            name: "VideoEditorSwiftUI",
+            dependencies: ["VideoEditorCore", "VideoEditorEngine", "VideoEditorExport"]),
         .testTarget(
             name: "ApertureSDKTests",
             dependencies: ["ApertureSDK"]),

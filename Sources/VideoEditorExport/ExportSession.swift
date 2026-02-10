@@ -15,33 +15,9 @@ public struct ExportProgress: Sendable {
     }
 }
 
-/// Watermark configuration hook
-public struct WatermarkConfig: Sendable {
-    public let imageURL: URL?
-    public let text: String?
-    public let position: WatermarkPosition
-    public let opacity: Double
-    
-    public enum WatermarkPosition: Sendable {
-        case topLeft, topRight, bottomLeft, bottomRight, center
-    }
-    
-    public init(
-        imageURL: URL? = nil,
-        text: String? = nil,
-        position: WatermarkPosition = .bottomRight,
-        opacity: Double = 0.5
-    ) {
-        self.imageURL = imageURL
-        self.text = text
-        self.position = position
-        self.opacity = opacity
-    }
-}
-
 /// Manages video export with progress reporting and cancellation
 @available(iOS 15.0, macOS 12.0, *)
-public class ExportSession {
+public actor ExportSession {
     
     private let compositionBuilder: CompositionBuilder
     private var currentExportSession: AVAssetExportSession?
@@ -56,14 +32,12 @@ public class ExportSession {
     ///   - project: The project to export
     ///   - preset: Export preset configuration
     ///   - outputURL: The output file URL
-    ///   - watermark: Optional watermark configuration
     ///   - progress: Progress callback
     public func export(
         project: Project,
         preset: ExportPreset,
         outputURL: URL,
-        watermark: WatermarkConfig? = nil,
-        progress: @escaping (ExportProgress) -> Void
+        progress: @escaping @Sendable (ExportProgress) -> Void
     ) async throws {
         isCancelled = false
         
@@ -82,7 +56,7 @@ public class ExportSession {
             if #available(iOS 17.0, macOS 14.0, *) {
                 avPresetName = AVAssetExportPresetHEVCHighestQuality
             } else {
-                avPresetName = AVAssetExportPresetHighestQuality
+                throw VideoEditorError.exportFailed("H.265 codec is not available on this OS version")
             }
         }
         
@@ -99,14 +73,16 @@ public class ExportSession {
         
         self.currentExportSession = exportSession
         
-        // Start progress monitoring
-        let progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            guard let self = self, !self.isCancelled else { return }
-            progress(ExportProgress(fractionCompleted: Double(exportSession.progress)))
+        // Start Task-based progress monitoring
+        let progressTask = Task { [weak exportSession] in
+            while let session = exportSession, session.status == .exporting || session.status == .waiting {
+                progress(ExportProgress(fractionCompleted: Double(session.progress)))
+                try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+            }
         }
         
         defer {
-            progressTimer.invalidate()
+            progressTask.cancel()
             self.currentExportSession = nil
         }
         

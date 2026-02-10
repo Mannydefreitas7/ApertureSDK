@@ -71,29 +71,17 @@ public struct VideoEditorView: View {
             .frame(minHeight: 150)
         }
         .sheet(isPresented: $showInspector) {
-            if var clip = selectedClip {
+            if let clipId = selectedClip?.id,
+               let trackIndex = project.tracks.firstIndex(where: { $0.clips.contains(where: { $0.id == clipId }) }),
+               let clipIndex = project.tracks[trackIndex].clips.firstIndex(where: { $0.id == clipId }) {
                 ClipInspectorView(
-                    clip: Binding(
-                        get: { clip },
-                        set: { newClip in
-                            clip = newClip
-                            updateClipInProject(newClip)
-                        }
-                    ),
+                    clip: $project.tracks[trackIndex].clips[clipIndex],
                     onDelete: {
-                        deleteClip(clip)
+                        project.tracks[trackIndex].clips.remove(at: clipIndex)
+                        selectedClip = nil
                         showInspector = false
                     }
                 )
-            }
-        }
-    }
-    
-    private func updateClipInProject(_ updatedClip: Clip) {
-        for trackIndex in project.tracks.indices {
-            if let clipIndex = project.tracks[trackIndex].clips.firstIndex(where: { $0.id == updatedClip.id }) {
-                project.tracks[trackIndex].clips[clipIndex] = updatedClip
-                break
             }
         }
     }

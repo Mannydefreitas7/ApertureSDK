@@ -12,6 +12,8 @@ public struct Clip: Codable, Identifiable, Sendable {
     public var volume: Double
     public var effects: [Effect]
     public var isMuted: Bool
+    /// Text content for text clips. Only used when `type == .text`.
+    public var textContent: TextClipContent?
     
     /// The type of clip
     public enum ClipType: String, Codable, Sendable {
@@ -31,7 +33,8 @@ public struct Clip: Codable, Identifiable, Sendable {
         opacity: Double = 1.0,
         volume: Double = 1.0,
         effects: [Effect] = [],
-        isMuted: Bool = false
+        isMuted: Bool = false,
+        textContent: TextClipContent? = nil
     ) {
         self.id = id
         self.type = type
@@ -43,6 +46,7 @@ public struct Clip: Codable, Identifiable, Sendable {
         self.volume = volume
         self.effects = effects
         self.isMuted = isMuted
+        self.textContent = textContent
     }
     
     /// Trim the clip to new start/duration

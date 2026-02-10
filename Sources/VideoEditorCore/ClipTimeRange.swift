@@ -1,10 +1,20 @@
 import Foundation
 
-/// Represents a time range for a clip (in seconds)
+/// Represents a time range for a clip (in seconds).
+///
+/// `ClipTimeRange.start` is the **source media offset** — the point in the source file
+/// where playback begins.  `ClipTimeRange.duration` is how long the clip plays.
+///
+/// Clips are **sequential on a track**: their timeline position is determined by their
+/// order in `Track.clips`, not by `start`.  `Track.clip(at:)` walks the array and
+/// accumulates durations to resolve a timeline time to a clip.
+///
+/// When building an `AVComposition`, `CompositionBuilder` uses `start` as the read
+/// offset into the source asset and `duration` as the length to insert.
 public struct ClipTimeRange: Codable, Equatable, Sendable {
-    /// Start time in seconds
+    /// Offset into the source media in seconds
     public var start: Double
-    /// Duration in seconds
+    /// Duration of the clip in seconds
     public var duration: Double
     
     public init(start: Double = 0, duration: Double = 0) {

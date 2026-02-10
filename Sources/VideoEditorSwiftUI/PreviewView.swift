@@ -5,7 +5,10 @@ import AVFoundation
 import VideoEditorCore
 import VideoEditorEngine
 
-/// A lower-level preview view for displaying rendered frames
+/// A lower-level preview view for displaying rendered frames.
+///
+/// Builds a playable composition from the project timeline and uses
+/// AVPlayer for playback, seeking to `currentTime` when it changes.
 @available(iOS 15.0, macOS 12.0, *)
 public struct PreviewView: View {
     private let engine: RenderEngine
@@ -15,6 +18,8 @@ public struct PreviewView: View {
     @State private var player: AVPlayer?
     @State private var isPlaying: Bool = false
     
+    private let compositionBuilder: CompositionBuilder
+    
     public init(
         engine: RenderEngine = RenderEngine(),
         project: Binding<Project>,
@@ -23,6 +28,7 @@ public struct PreviewView: View {
         self.engine = engine
         self._project = project
         self._currentTime = currentTime
+        self.compositionBuilder = CompositionBuilder()
     }
     
     public var body: some View {
@@ -42,6 +48,32 @@ public struct PreviewView: View {
             CGFloat(project.canvasSize.width / max(project.canvasSize.height, 1)),
             contentMode: .fit
         )
+        .task(id: project.tracks.hashValue) {
+            await buildPlayerFromProject()
+        }
+        .onChange(of: currentTime) { newTime in
+            guard let player = player, !isPlaying else { return }
+            let cmTime = CMTime(seconds: newTime, preferredTimescale: 600)
+            player.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero)
+        }
+    }
+    
+    private func buildPlayerFromProject() async {
+        // Only build if there are clips to play
+        let hasClips = project.tracks.contains { !$0.clips.isEmpty }
+        guard hasClips else {
+            player = nil
+            return
+        }
+        
+        do {
+            let composition = try await compositionBuilder.buildComposition(from: project)
+            let playerItem = AVPlayerItem(asset: composition)
+            let newPlayer = AVPlayer(playerItem: playerItem)
+            player = newPlayer
+        } catch {
+            player = nil
+        }
     }
 }
 #endif

@@ -87,7 +87,9 @@ public struct ExportButton: View {
     }
     
     private func cancelExport() {
-        exportSession?.cancel()
+        Task {
+            await exportSession?.cancel()
+        }
         isExporting = false
         progress = 0
     }

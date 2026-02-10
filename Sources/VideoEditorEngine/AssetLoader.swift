@@ -5,7 +5,7 @@ import VideoEditorCore
 
 /// Loads and manages AVFoundation assets from Core model data
 @available(iOS 15.0, macOS 12.0, *)
-public class AssetLoader {
+public actor AssetLoader {
     
     private var cache: [URL: AVAsset] = [:]
     

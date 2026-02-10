@@ -72,6 +72,7 @@ public class LUTLoader {
         guard let filter = CIFilter(name: "CIColorCubeWithColorSpace") else { return nil }
         filter.setValue(size, forKey: "inputCubeDimension")
         filter.setValue(lutData, forKey: "inputCubeData")
+        filter.setValue(CGColorSpaceCreateDeviceRGB(), forKey: "inputColorSpace")
         
         return filter
     }

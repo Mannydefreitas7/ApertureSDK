@@ -54,30 +54,44 @@ public class RenderEngine {
         effectRenderer.apply(effects: effects, to: image)
     }
     
-    /// Apply clip transform to a CIImage
+    /// Apply clip transform to a CIImage using anchor-point-based transformation.
+    ///
+    /// Transform order:
+    /// 1. Move the image so that its anchor point is at the origin
+    /// 2. Apply scale and rotation around the origin
+    /// 3. Translate so that the anchor lies at the desired canvas position
     public func applyTransform(_ transform: ClipTransform, to image: CIImage, canvasSize: CanvasSize) -> CIImage {
-        var result = image
+        let originalExtent = image.extent
         
-        // Scale
+        // Compute anchor in image coordinates (anchorX/anchorY are normalized 0-1)
+        let anchorPoint = CGPoint(
+            x: originalExtent.origin.x + originalExtent.width * CGFloat(transform.anchorX),
+            y: originalExtent.origin.y + originalExtent.height * CGFloat(transform.anchorY)
+        )
+        
+        // Start by moving the anchor point to the origin
+        var compositeTransform = CGAffineTransform(translationX: -anchorPoint.x, y: -anchorPoint.y)
+        
+        // Scale around the anchor/origin
         if transform.scaleX != 1.0 || transform.scaleY != 1.0 {
-            let scaleTransform = CGAffineTransform(scaleX: CGFloat(transform.scaleX), y: CGFloat(transform.scaleY))
-            result = result.transformed(by: scaleTransform)
+            compositeTransform = compositeTransform.scaledBy(
+                x: CGFloat(transform.scaleX),
+                y: CGFloat(transform.scaleY)
+            )
         }
         
-        // Rotation
+        // Rotate around the anchor/origin
         if transform.rotation != 0 {
             let radians = transform.rotation * .pi / 180
-            let rotationTransform = CGAffineTransform(rotationAngle: CGFloat(radians))
-            result = result.transformed(by: rotationTransform)
+            compositeTransform = compositeTransform.rotated(by: CGFloat(radians))
         }
         
-        // Position (translate to normalized position in canvas)
-        let offsetX = CGFloat(transform.positionX) * CGFloat(canvasSize.width) - result.extent.midX
-        let offsetY = CGFloat(transform.positionY) * CGFloat(canvasSize.height) - result.extent.midY
-        let translationTransform = CGAffineTransform(translationX: offsetX, y: offsetY)
-        result = result.transformed(by: translationTransform)
+        // Translate so the anchor lies at the normalized position in the canvas
+        let targetX = CGFloat(transform.positionX) * CGFloat(canvasSize.width)
+        let targetY = CGFloat(transform.positionY) * CGFloat(canvasSize.height)
+        compositeTransform = compositeTransform.translatedBy(x: targetX, y: targetY)
         
-        return result
+        return image.transformed(by: compositeTransform)
     }
     
     /// Composite multiple images together

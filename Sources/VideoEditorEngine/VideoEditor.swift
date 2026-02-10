@@ -36,7 +36,7 @@ public class VideoEditor {
         exportSession.outputFileType = .mp4
         exportSession.timeRange = CMTimeRange(
             start: CMTime(seconds: startTime, preferredTimescale: 600),
-            end: CMTime(seconds: endTime, preferredTimescale: 600)
+            duration: CMTime(seconds: endTime - startTime, preferredTimescale: 600)
         )
         
         await exportSession.export()

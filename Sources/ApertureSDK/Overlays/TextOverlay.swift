@@ -70,6 +70,14 @@ public class TextOverlay: OverlayProtocol {
         self.alignment = .center
     }
     
+    /// Render the text overlay at a specific time
+    /// - Parameters:
+    ///   - time: The current playback time
+    ///   - size: The video frame size
+    /// - Returns: A CIImage of the rendered text, or nil if not visible
+    /// - Note: This is a simplified implementation. In production, this would use Core Graphics
+    ///         to render the text to an image. For a complete implementation, integrate with
+    ///         AVVideoComposition's custom compositor.
     public func render(at time: CMTime, size: CGSize) -> CIImage? {
         // Check if overlay should be visible at this time
         let overlayEndTime = CMTimeAdd(startTime, duration)

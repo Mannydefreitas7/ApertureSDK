@@ -54,6 +54,14 @@ public class ImageOverlay: OverlayProtocol {
         self.alpha = 1.0
     }
     
+    /// Render the image overlay at a specific time
+    /// - Parameters:
+    ///   - time: The current playback time
+    ///   - size: The video frame size
+    /// - Returns: A CIImage of the rendered overlay, or nil if not visible
+    /// - Note: This returns the transformed image. For complete implementation,
+    ///         integrate with AVVideoComposition's custom compositor to composite
+    ///         the image onto the video frame.
     public func render(at time: CMTime, size: CGSize) -> CIImage? {
         // Check if overlay should be visible at this time
         let overlayEndTime = CMTimeAdd(startTime, duration)

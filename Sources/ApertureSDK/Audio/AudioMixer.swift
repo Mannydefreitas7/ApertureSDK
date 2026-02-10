@@ -106,7 +106,7 @@ public class AudioMixer {
         
         exportSession.outputURL = outputURL
         exportSession.outputFileType = .mp4
-        exportSession.audioMix = createAudioMix(for: asset, volume: volume)
+        exportSession.audioMix = try await createAudioMix(for: asset, volume: volume)
         
         await exportSession.export()
         
@@ -115,17 +115,15 @@ public class AudioMixer {
         }
     }
     
-    private static func createAudioMix(for asset: AVAsset, volume: Float) -> AVAudioMix {
+    private static func createAudioMix(for asset: AVAsset, volume: Float) async throws -> AVAudioMix {
         let audioMix = AVMutableAudioMix()
         var audioMixParams: [AVMutableAudioMixInputParameters] = []
         
-        Task {
-            let audioTracks = try await asset.loadTracks(withMediaType: .audio)
-            for track in audioTracks {
-                let params = AVMutableAudioMixInputParameters(track: track)
-                params.setVolume(volume, at: .zero)
-                audioMixParams.append(params)
-            }
+        let audioTracks = try await asset.loadTracks(withMediaType: .audio)
+        for track in audioTracks {
+            let params = AVMutableAudioMixInputParameters(track: track)
+            params.setVolume(volume, at: .zero)
+            audioMixParams.append(params)
         }
         
         audioMix.inputParameters = audioMixParams

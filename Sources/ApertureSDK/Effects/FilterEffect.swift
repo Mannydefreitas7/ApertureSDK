@@ -18,6 +18,12 @@ public struct FilterEffect: EffectProtocol {
         self.parameters = parameters
     }
     
+    /// Apply the filter effect to a video composition
+    /// - Parameter composition: The video composition to apply the effect to
+    /// - Returns: The modified video composition
+    /// - Note: This is a simplified implementation. For complete functionality,
+    ///         create an AVVideoComposition with custom instructions that apply
+    ///         the CIFilter to each frame using AVVideoCompositing protocol.
     public func apply(to composition: AVMutableVideoComposition) -> AVMutableVideoComposition {
         // Apply filter to video composition
         // This is a simplified implementation

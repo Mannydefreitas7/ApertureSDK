@@ -27,7 +27,8 @@ public class VideoAsset: Identifiable {
         self.volume = 1.0
         
         // Load asset properties
-        guard try await asset.load(.isPlayable), try await asset.load(.isPlayable) else {
+        let isPlayable = try await asset.load(.isPlayable)
+        guard isPlayable else {
             throw ApertureError.invalidAsset
         }
         

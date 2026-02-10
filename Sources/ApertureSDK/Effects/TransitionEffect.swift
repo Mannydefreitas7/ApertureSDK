@@ -48,6 +48,12 @@ public struct TransitionEffect: EffectProtocol {
         }
     }
     
+    /// Apply the transition effect to a video composition
+    /// - Parameter composition: The video composition to apply the effect to
+    /// - Returns: The modified video composition
+    /// - Note: This is a simplified implementation. For complete functionality,
+    ///         create custom video composition instructions that blend frames
+    ///         during the transition duration using AVVideoCompositing protocol.
     public func apply(to composition: AVMutableVideoComposition) -> AVMutableVideoComposition {
         // Apply transition to video composition
         // This is a simplified implementation

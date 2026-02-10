@@ -17,7 +17,9 @@ public struct Project: Codable, Identifiable, Sendable {
         canvasSize: CanvasSize = .hd1080p,
         fps: Double = 30,
         audioSampleRate: Double = 44100,
-        tracks: [Track] = []
+        tracks: [Track] = [],
+        createdAt: Date = Date(),
+        modifiedAt: Date = Date()
     ) {
         self.id = id
         self.name = name
@@ -25,8 +27,8 @@ public struct Project: Codable, Identifiable, Sendable {
         self.fps = fps
         self.audioSampleRate = audioSampleRate
         self.tracks = tracks
-        self.createdAt = Date()
-        self.modifiedAt = Date()
+        self.createdAt = createdAt
+        self.modifiedAt = modifiedAt
     }
     
     /// Add a track to the project

@@ -4,27 +4,63 @@ A powerful Swift Video Editor SDK for iOS and macOS, providing comprehensive vid
 
 ## Features
 
-- 🎬 **Video Editing**: Trim, merge, and split video clips with ease
-- 🎨 **Effects**: Apply filters like sepia, blur, brightness, contrast, and more
-- 📝 **Overlays**: Add text and image overlays to your videos
-- 🎵 **Audio**: Mix, replace, and process audio tracks
-- 📤 **Export**: Export to multiple formats and resolutions (720p, 1080p, 4K)
-- 🖼️ **SwiftUI Components**: Ready-to-use video player, timeline, and trimmer views
-- 🔄 **Timeline Management**: Multi-track timeline with video, audio, and overlay tracks
-- ⚡ **Performance**: Optimized for iOS and macOS with async/await support
+- 🎬 **Core Editing**: Multi-track timeline (video + audio + overlays), trim/split, drag reorder, crop/rotate/transform
+- 🎨 **Effects**: Filters (sepia, B&W, brightness, contrast, saturation, blur, sharpen, vignette), LUT support
+- 🔀 **Transitions**: Cross dissolve, slide, wipe, fade
+- 📝 **Overlays**: Timed text overlays, image/sticker overlays, picture-in-picture
+- 📄 **Captions**: SRT subtitle import/export
+- 🎵 **Audio**: Volume control, fade in/out, mute, audio extraction
+- 📤 **Export**: H.264/H.265, target bitrate, fps, resolution presets, progress + cancel, watermark hook
+- 🖼️ **SwiftUI Components**: VideoEditorView, PreviewView, ProjectTimelineView, ClipInspectorView, ExportButton
+- 🔄 **Timeline-first Data Model**: Serializable Codable models independent of AVFoundation
+- ⚡ **Modern Swift**: async/await, Sendable types, structured concurrency
 - 📱 **Platform Support**: iOS 15.0+, macOS 12.0+
-- 📦 **Swift Package Manager**: Easy integration
+- 📦 **Modular SwiftPM**: Use the full SDK or just the parts you need
+
+## Package Layout (SwiftPM)
+
+ApertureSDK is split into focused modules so you can use only what you need:
+
+| Package | Description | Dependencies |
+|---------|-------------|--------------|
+| **VideoEditorCore** | Pure Swift models + timeline logic (Codable, no AVFoundation) | Foundation only |
+| **VideoEditorEngine** | AVFoundation + CoreImage render pipeline | VideoEditorCore |
+| **VideoEditorExport** | Export session, presets, progress + cancel | VideoEditorCore, VideoEditorEngine |
+| **VideoEditorSwiftUI** | SwiftUI components + bindings | VideoEditorCore, VideoEditorEngine, VideoEditorExport |
+| **VideoEditorAssets** | LUT loader, bundled resources | VideoEditorCore |
+| **ApertureSDK** | Umbrella module that re-exports everything | All of the above |
+
+This lets you:
+- **Use the engine with UIKit or SwiftUI** — import `VideoEditorCore` + `VideoEditorEngine`
+- **Embed the ready-made SwiftUI editor** — import `VideoEditorSwiftUI`
+- **Build your own UI on top of Core + Engine** — skip the SwiftUI module entirely
+- **Use just the data models** — import only `VideoEditorCore` for serialization/deserialization
 
 ## Installation
 
 ### Swift Package Manager
 
-Add ApertureSDK to your project using Swift Package Manager by adding it to your `Package.swift` dependencies:
+Add ApertureSDK to your project using Swift Package Manager:
 
 ```swift
 dependencies: [
     .package(url: "https://github.com/Mannydefreitas7/ApertureSDK.git", from: "1.0.0")
 ]
+```
+
+Then choose which modules to import:
+
+```swift
+// Import everything
+.target(name: "MyApp", dependencies: [
+    .product(name: "ApertureSDK", package: "ApertureSDK")
+])
+
+// Or pick individual modules
+.target(name: "MyApp", dependencies: [
+    .product(name: "VideoEditorCore", package: "ApertureSDK"),
+    .product(name: "VideoEditorEngine", package: "ApertureSDK"),
+])
 ```
 
 Or add it directly in Xcode:
@@ -34,187 +70,215 @@ Or add it directly in Xcode:
 
 ## Quick Start
 
-### Basic Video Project
+### Creating a Project (VideoEditorCore)
+
+The timeline data model is pure Swift, Codable, and independent of AVFoundation:
 
 ```swift
-import ApertureSDK
-import AVFoundation
+import VideoEditorCore
 
-// Create a new video project
-let project = VideoProject(name: "My Movie")
+// Create a project
+var project = Project(name: "My Movie", canvasSize: .hd1080p, fps: 30)
 
-// Add video assets
-let asset1 = try await VideoAsset(url: videoURL1)
-let asset2 = try await VideoAsset(url: videoURL2)
+// Add tracks and clips
+var videoTrack = Track(type: .video)
+videoTrack.addClip(Clip(
+    type: .video,
+    timeRange: ClipTimeRange(start: 0, duration: 10),
+    sourceURL: videoURL
+))
+project.addTrack(videoTrack)
 
-project.addAsset(asset1)
-project.addAsset(asset2)
+// Add effects
+var clip = project.tracks[0].clips[0]
+clip.effects.append(.brightness(0.2))
+clip.effects.append(.contrast(1.1))
 
-// Export the project
-try await project.export(
-    to: outputURL,
+// Serialize to JSON for save/load
+let json = try project.toJSON()
+let loaded = try Project.fromJSON(json)
+```
+
+### Split and Trim Clips
+
+```swift
+import VideoEditorCore
+
+var clip = Clip(type: .video, timeRange: ClipTimeRange(start: 0, duration: 10))
+
+// Split at 4 seconds
+if let (first, second) = clip.split(at: 4) {
+    // first: 0-4s, second: 4-10s
+}
+
+// Trim
+clip.trim(start: 2, duration: 6) // now 2-8s
+```
+
+### Captions / SRT Import-Export
+
+```swift
+import VideoEditorCore
+
+// Parse SRT
+let srt = """
+1
+00:00:01,000 --> 00:00:03,500
+Hello World
+
+2
+00:00:05,000 --> 00:00:08,200
+Second caption
+"""
+let track = CaptionTrack.fromSRT(srt)
+
+// Export back to SRT
+let exported = track.toSRT()
+```
+
+### Export with Progress
+
+```swift
+import VideoEditorExport
+
+let session = ExportSession()
+
+try await session.export(
+    project: project,
     preset: .hd1080p,
+    outputURL: outputURL,
     progress: { progress in
-        print("Export progress: \(progress * 100)%")
+        print("Export: \(Int(progress.fractionCompleted * 100))%")
     }
 )
+
+// Cancel if needed
+session.cancel()
 ```
 
-### Trimming Video
-
-```swift
-import ApertureSDK
-import AVFoundation
-
-// Load a video asset
-let asset = try await VideoAsset(url: videoURL)
-
-// Trim the video
-try asset.trim(
-    start: CMTime(seconds: 5, preferredTimescale: 600),
-    end: CMTime(seconds: 15, preferredTimescale: 600)
-)
-```
-
-### Applying Effects
-
-```swift
-import ApertureSDK
-
-let asset = try await VideoAsset(url: videoURL)
-
-// Apply a sepia filter
-let sepiaEffect = FilterEffect.sepia(intensity: 0.8)
-asset.applyEffect(sepiaEffect)
-
-// Apply brightness adjustment
-let brightnessEffect = FilterEffect.brightness(0.2)
-asset.applyEffect(brightnessEffect)
-```
-
-### Adding Text Overlay
-
-```swift
-import ApertureSDK
-import AVFoundation
-
-let asset = try await VideoAsset(url: videoURL)
-
-// Create a text overlay
-let textOverlay = TextOverlay(
-    text: "Hello World",
-    font: .systemFont(ofSize: 48),
-    color: .white,
-    startTime: CMTime(seconds: 2, preferredTimescale: 600),
-    duration: CMTime(seconds: 5, preferredTimescale: 600)
-)
-
-asset.addOverlay(textOverlay)
-```
-
-### Merging Videos
-
-```swift
-import ApertureSDK
-
-// Merge multiple videos
-try await VideoMerger.merge(
-    urls: [videoURL1, videoURL2, videoURL3],
-    outputURL: outputURL
-)
-```
-
-### SwiftUI Integration
+### SwiftUI Editor
 
 ```swift
 import SwiftUI
-import ApertureSDK
-import AVFoundation
+import VideoEditorSwiftUI
+import VideoEditorCore
 
 struct ContentView: View {
-    @State private var project = VideoProject(name: "My Project")
-    @State private var asset: VideoAsset?
-    @State private var currentTime: CMTime = .zero
+    @State private var project = Project(name: "My Project")
+    
+    var body: some View {
+        VideoEditorView(project: $project)
+    }
+}
+```
+
+### Composable SwiftUI Pieces
+
+```swift
+import SwiftUI
+import VideoEditorSwiftUI
+import VideoEditorCore
+
+struct CustomEditor: View {
+    @State private var project = Project(name: "Custom")
+    @State private var currentTime: Double = 0
     
     var body: some View {
         VStack {
-            if let asset = asset {
-                VideoPlayerView(
-                    asset: .constant(asset),
-                    currentTime: $currentTime,
-                    showControls: true
-                )
-            }
+            PreviewView(project: $project, currentTime: $currentTime)
             
-            TimelineView(project: $project) { selectedAsset in
-                self.asset = selectedAsset
+            ProjectTimelineView(
+                project: $project,
+                currentTime: $currentTime,
+                onClipSelected: { clip in
+                    print("Selected: \(clip.id)")
+                }
+            )
+            
+            ExportButton(
+                project: project,
+                preset: .hd1080p,
+                outputURL: outputURL
+            ) { result in
+                switch result {
+                case .success(let url): print("Exported to \(url)")
+                case .failure(let error): print("Failed: \(error)")
+                }
             }
         }
     }
 }
 ```
 
-## Core Components
+## Data Model (Timeline-First)
 
-### VideoProject
-Represents a video editing project with multiple assets, timeline management, and export capabilities.
+The data model is designed to be serializable and deterministic:
 
-### VideoAsset
-Represents a video file with support for trimming, effects, and overlays.
+- **Project** — canvasSize, fps, audioSampleRate, tracks
+- **Track** — type (video/audio/overlay), clips, isMuted, isLocked
+- **Clip** — type, timeRange, sourceURL, transform, opacity, volume, effects, isMuted
+- **Effect** — type, parameters (Codable data, rendered by Engine)
+- **Transition** — type, duration
+- **ClipTransform** — position, scale, rotation, anchor
+- **CaptionTrack** — SRT-compatible captions with import/export
 
-### Timeline
-Multi-track timeline system supporting video, audio, and overlay tracks.
+All models conform to `Codable` and `Sendable`, enabling JSON save/load and thread-safe usage.
 
-### ExportManager
-Handles video export with multiple preset configurations and progress reporting.
+## Effects System (Extensible)
 
-### Effects System
-- **FilterEffect**: Apply visual filters (sepia, blur, brightness, contrast, saturation, etc.)
-- **TransitionEffect**: Create transitions between clips (fade, crossfade, wipe, dissolve)
+Effects are data + renderer: the `Effect` struct is Codable config, and `EffectRenderer` in the Engine maps effect types to CoreImage filters:
 
-### Overlay System
-- **TextOverlay**: Add animated text overlays
-- **ImageOverlay**: Add image overlays with transformations
+```swift
+// Define effect (data-only, Codable)
+let effect = Effect.colorControls(brightness: 0.1, contrast: 1.2, saturation: 0.8)
 
-### Audio Features
-- **AudioMixer**: Mix background music with video audio
-- **AudioProcessor**: Extract, replace, and trim audio tracks
+// Render via engine
+import VideoEditorEngine
+let renderer = EffectRenderer()
+let output = renderer.apply(effect: effect, to: inputImage)
+```
 
-### SwiftUI Components
-- **VideoPlayerView**: Full-featured video player with controls
-- **TimelineView**: Visual timeline representation with drag-to-reorder
-- **TrimmerView**: Interactive video trimmer with thumbnail preview
+Built-in effects: sepia, blackAndWhite, brightness, contrast, saturation, blur, sharpen, vignette, colorControls, customLUT.
 
 ## Export Presets
 
-ApertureSDK supports multiple export presets:
+| Preset | Resolution | Bitrate | Codec |
+|--------|-----------|---------|-------|
+| `.hd720p` | 1280×720 | 5 Mbps | H.264 |
+| `.hd1080p` | 1920×1080 | 8 Mbps | H.264 |
+| `.hd4K` | 3840×2160 | 20 Mbps | H.265 |
+| `.instagram` | 1080×1080 | 5 Mbps | H.264 |
+| `.twitter` | 1280×720 | 5 Mbps | H.264 |
+| `.portrait` | 1080×1920 | 8 Mbps | H.264 |
 
-- `.hd720p` - 1280x720 resolution
-- `.hd1080p` - 1920x1080 resolution (Full HD)
-- `.hd4K` - 3840x2160 resolution (4K UHD)
-- `.instagram` - 1080x1080 (Square format)
-- `.twitter` - 1280x720 (Optimized for Twitter)
-- `.custom(width:height:bitrate:)` - Custom resolution and bitrate
+Custom presets:
+
+```swift
+let custom = ExportPreset(
+    resolution: CanvasSize(width: 1920, height: 1080),
+    bitrate: 10_000_000,
+    fps: 60,
+    codec: .h265
+)
+```
 
 ## Error Handling
 
-ApertureSDK uses the `ApertureError` enum for error handling:
-
 ```swift
+import VideoEditorCore
+
 do {
-    let asset = try await VideoAsset(url: videoURL)
-} catch ApertureError.invalidAsset {
-    print("Invalid video asset")
-} catch ApertureError.exportFailed {
-    print("Export failed")
-} catch ApertureError.unsupportedFormat {
-    print("Unsupported video format")
-} catch ApertureError.insufficientPermissions {
-    print("Insufficient permissions")
-} catch ApertureError.invalidTimeRange {
-    print("Invalid time range")
+    let json = try project.toJSON()
+} catch VideoEditorError.serializationFailed(let msg) {
+    print("Serialization failed: \(msg)")
+} catch VideoEditorError.invalidAsset {
+    print("Invalid asset")
+} catch VideoEditorError.exportFailed(let msg) {
+    print("Export failed: \(msg)")
+} catch VideoEditorError.cancelled {
+    print("Operation cancelled")
 } catch {
-    print("Unknown error: \(error)")
+    print("Error: \(error)")
 }
 ```
 
@@ -226,13 +290,11 @@ do {
 
 ## Building
 
-To build the package:
-
 ```bash
 swift build
 ```
 
-To run tests:
+## Testing
 
 ```bash
 swift test
@@ -240,12 +302,28 @@ swift test
 
 ## Architecture
 
-ApertureSDK is built using native Apple frameworks:
-- **AVFoundation** for video processing
-- **CoreImage** for effects and filters
-- **SwiftUI** for UI components
-- **Combine** for reactive updates
-- Modern **async/await** for concurrency
+```
+┌─────────────────────────────────────────────────┐
+│                  ApertureSDK                     │
+│              (umbrella re-export)                 │
+├──────────────┬──────────────┬───────────────────┤
+│ VideoEditor  │ VideoEditor  │  VideoEditor       │
+│   SwiftUI    │   Export     │    Assets           │
+├──────────────┴──────────────┤                    │
+│       VideoEditorEngine      │                    │
+│   (AVFoundation + CoreImage) │                    │
+├──────────────────────────────┴───────────────────┤
+│              VideoEditorCore                      │
+│        (Pure Swift models, Codable)               │
+└─────────────────────────────────────────────────┘
+```
+
+- **VideoEditorCore**: Pure Swift — no Apple framework dependencies beyond Foundation
+- **VideoEditorEngine**: AVFoundation + CoreImage for rendering and asset management
+- **VideoEditorExport**: Export pipeline with AVAssetExportSession
+- **VideoEditorSwiftUI**: Thin SwiftUI wrappers over Core + Engine
+- **VideoEditorAssets**: LUT/resource loading via `Bundle.module`
+- Modern **async/await** concurrency throughout
 
 ## License
 

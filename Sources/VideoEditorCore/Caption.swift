@@ -84,7 +84,7 @@ public struct CaptionTrack: Codable, Sendable {
     
     /// Get captions visible at a given time
     public func captions(at time: Double) -> [Caption] {
-        captions.filter { time >= $0.startTime && time <= $0.endTime }
+        captions.filter { time >= $0.startTime && time < $0.endTime }
     }
     
     // MARK: - Private Helpers

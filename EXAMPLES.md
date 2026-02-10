@@ -2,6 +2,126 @@
 
 This document contains comprehensive usage examples for ApertureSDK.
 
+> **Note:** ApertureSDK v1 is split into modular packages. You can import the umbrella `ApertureSDK`
+> module (which re-exports everything), or import individual modules like `VideoEditorCore`,
+> `VideoEditorEngine`, `VideoEditorExport`, `VideoEditorSwiftUI`, and `VideoEditorAssets`.
+> See the [README](README.md) for details on the package layout.
+
+## New in v1: Timeline-First Data Model (VideoEditorCore)
+
+### Creating and Serializing Projects
+
+```swift
+import VideoEditorCore
+
+// Create a project with the pure-Swift data model
+var project = Project(name: "My Movie", canvasSize: .hd1080p, fps: 30)
+
+// Add a video track with clips
+var videoTrack = Track(type: .video)
+videoTrack.addClip(Clip(
+    type: .video,
+    timeRange: ClipTimeRange(start: 0, duration: 10),
+    sourceURL: URL(fileURLWithPath: "/path/to/video.mp4"),
+    effects: [.brightness(0.2), .contrast(1.1)]
+))
+project.addTrack(videoTrack)
+
+// Save project as JSON
+let jsonData = try project.toJSON()
+let jsonString = String(data: jsonData, encoding: .utf8)!
+print(jsonString)
+
+// Load project from JSON
+let loadedProject = try Project.fromJSON(jsonData)
+```
+
+### Clip Operations (Split, Trim)
+
+```swift
+import VideoEditorCore
+
+// Create a clip
+var clip = Clip(type: .video, timeRange: ClipTimeRange(start: 0, duration: 10))
+
+// Split at 4 seconds → returns two clips
+if let (first, second) = clip.split(at: 4) {
+    print(first.timeRange)  // start: 0, duration: 4
+    print(second.timeRange) // start: 4, duration: 6
+}
+
+// Trim a clip
+clip.trim(start: 2, duration: 6)
+```
+
+### SRT Caption Import/Export
+
+```swift
+import VideoEditorCore
+
+let srt = """
+1
+00:00:01,000 --> 00:00:03,500
+Hello World
+
+2
+00:00:05,000 --> 00:00:08,200
+Second subtitle line
+"""
+
+let captionTrack = CaptionTrack.fromSRT(srt)
+print(captionTrack.captions.count) // 2
+
+// Get visible captions at a time
+let visible = captionTrack.captions(at: 2.0)
+print(visible.first?.text) // "Hello World"
+
+// Export back to SRT
+let exported = captionTrack.toSRT()
+```
+
+### Export with VideoEditorExport
+
+```swift
+import VideoEditorExport
+import VideoEditorCore
+
+let session = ExportSession()
+
+// Export with progress + cancellation
+try await session.export(
+    project: project,
+    preset: .hd1080p,
+    outputURL: URL(fileURLWithPath: "/path/to/output.mp4"),
+    progress: { progress in
+        print("\(Int(progress.fractionCompleted * 100))%")
+    }
+)
+
+// Cancel if needed
+session.cancel()
+```
+
+### SwiftUI Editor (VideoEditorSwiftUI)
+
+```swift
+import SwiftUI
+import VideoEditorSwiftUI
+import VideoEditorCore
+
+struct EditorScreen: View {
+    @State private var project = Project(name: "My Project")
+    
+    var body: some View {
+        VideoEditorView(project: $project)
+    }
+}
+```
+
+---
+
+## Legacy API Examples (ApertureSDK umbrella module)
+
 ## Table of Contents
 
 1. [Basic Video Editing](#basic-video-editing)

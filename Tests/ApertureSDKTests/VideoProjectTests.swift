@@ -4,7 +4,6 @@ import Testing
 #if canImport(AVFoundation)
 import AVFoundation
 
-@available(iOS 15.0, macOS 12.0, *)
 struct VideoProjectTests {
     
     @Test func projectInitialization() {

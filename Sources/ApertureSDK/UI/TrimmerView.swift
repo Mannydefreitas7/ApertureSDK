@@ -123,6 +123,7 @@ public struct TrimmerView: View {
     }
     
     private func loadThumbnails() async {
+        guard #available(iOS 16, macOS 13, *) else { return }
         let duration = CMTimeGetSeconds(asset.duration)
         let interval = duration / Double(thumbnailCount)
         

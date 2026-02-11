@@ -28,7 +28,7 @@ public class ResourceManager {
             return []
         }
         return urls.compactMap { url -> String? in
-            guard let filename = url.lastPathComponent else { return nil }
+            let filename = url.lastPathComponent
             if let dotRange = filename.range(of: ".", options: .backwards) {
                 return String(filename[filename.startIndex..<dotRange.lowerBound])
             }

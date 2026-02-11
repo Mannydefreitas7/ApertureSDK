@@ -24,6 +24,7 @@ jobs:
   release:
     name: Build, Test & Release
     runs-on: macos-15
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,9 +42,13 @@ jobs:
         run: |
           if [ -n "${{ github.event.inputs.version }}" ]; then
             NEW_VERSION="${{ github.event.inputs.version }}"
+            if ! echo "$NEW_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "Error: Version '$NEW_VERSION' is not valid semver (expected MAJOR.MINOR.PATCH)." >&2
+              exit 1
+            fi
           else
-            # Get the latest semver tag or default to 0.0.0
-            LATEST_TAG=$(git tag --list 'v*' --sort=-v:refname | head -n1)
+            # Get the latest semver tag matching vMAJOR.MINOR.PATCH or default to 0.0.0
+            LATEST_TAG=$(git tag --list 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1)
             if [ -z "$LATEST_TAG" ]; then
               LATEST_TAG="v0.0.0"
             fi
@@ -64,6 +69,10 @@ jobs:
                 ;;
               patch)
                 PATCH=$((PATCH + 1))
+                ;;
+              *)
+                echo "Error: Unknown semver bump '$BUMP'. Expected 'major', 'minor', or 'patch'." >&2
+                exit 1
                 ;;
             esac
             NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"

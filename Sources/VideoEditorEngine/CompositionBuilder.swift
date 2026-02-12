@@ -14,6 +14,7 @@ public class CompositionBuilder {
     }
     
     /// Build an AVComposition from a project
+    @MainActor
     public func buildComposition(from project: Project) async throws -> AVMutableComposition {
         let composition = AVMutableComposition()
         
@@ -32,6 +33,7 @@ public class CompositionBuilder {
         return composition
     }
     
+    @MainActor
     private func addVideoTrack(_ track: Track, to composition: AVMutableComposition) async throws {
         guard let compositionVideoTrack = composition.addMutableTrack(
             withMediaType: .video,
@@ -75,6 +77,7 @@ public class CompositionBuilder {
         }
     }
     
+    @MainActor
     private func addAudioTrack(_ track: Track, to composition: AVMutableComposition) async throws {
         guard let compositionAudioTrack = composition.addMutableTrack(
             withMediaType: .audio,

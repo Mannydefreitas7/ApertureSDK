@@ -67,6 +67,7 @@ public struct PreviewView: View {
         }.joined(separator: "|")
     }
     
+    @MainActor
     private func buildPlayerFromProject() async {
         // Only build if there are clips to play
         let hasClips = project.tracks.contains { !$0.clips.isEmpty }

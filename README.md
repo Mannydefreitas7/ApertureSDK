@@ -1,5 +1,9 @@
 # ApertureSDK
 
+![Release](https://img.shields.io/github/v/release/Mannydefreitas7/ApertureSDK?style=flat-square)
+![CI](https://img.shields.io/github/actions/workflow/status/Mannydefreitas7/ApertureSDK/ci.yml?branch=main&label=CI&style=flat-square)
+![License](https://img.shields.io/github/license/Mannydefreitas7/ApertureSDK?style=flat-square)
+
 A powerful Swift Video Editor SDK for iOS and macOS, providing comprehensive video editing capabilities including trimming, merging, effects, overlays, and export functionality.
 
 ## Features

@@ -31,12 +31,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Build
-        run: swift build
-
-      - name: Test
-        run: swift test
-
       - name: Determine version
         id: version
         run: |
@@ -81,10 +75,33 @@ jobs:
           echo "tag=v$NEW_VERSION" >> "$GITHUB_OUTPUT"
           echo "Releasing version $NEW_VERSION"
 
-      - name: Create tag
+      - name: Update README version
         run: |
+          NEW_VERSION="${{ steps.version.outputs.version }}"
+          sed -i.bak -E 's/(.package\(url: ".*ApertureSDK\.git", from: ")[0-9]+\.[0-9]+\.[0-9]+(")/\1'"$NEW_VERSION"'\2/' README.md
+          rm -f README.md.bak
+          if ! grep -q "from: \"$NEW_VERSION\"" README.md; then
+            echo "Error: README.md does not contain 'from: \"$NEW_VERSION\"' after sed replacement." >&2
+            exit 1
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          if git diff --cached --quiet; then
+            echo "README already up to date"
+          else
+            git commit -m "chore: update README version to $NEW_VERSION"
+            git push origin main
+          fi
+
+      - name: Build
+        run: swift build
+
+      - name: Test
+        run: swift test
+
+      - name: Create tag
+        run: |
           git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.tag }}"
           git push origin "${{ steps.version.outputs.tag }}"
 

@@ -28,6 +28,7 @@ public class ResourceManager {
             return []
         }
         return urls.compactMap { url -> String? in
+            // URL.lastPathComponent is optional on Linux but non-optional on macOS/iOS
             #if os(Linux)
             guard let filename = url.lastPathComponent else { return nil }
             #else

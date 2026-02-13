@@ -97,20 +97,20 @@ struct ClipTransformTests {
     }
 }
 
-struct VideoEditorErrorTests {
+struct ApertureErrorTests {
     
     @Test func errorDescriptions() {
-        #expect(VideoEditorError.invalidConfiguration.localizedDescription == "Invalid configuration")
-        #expect(VideoEditorError.invalidAsset.localizedDescription == "Invalid asset or cannot be loaded")
-        #expect(VideoEditorError.unsupportedFormat.localizedDescription == "Unsupported format")
-        #expect(VideoEditorError.insufficientPermissions.localizedDescription == "Insufficient permissions to access the resource")
-        #expect(VideoEditorError.invalidTimeRange.localizedDescription == "Invalid time range specified")
-        #expect(VideoEditorError.cancelled.localizedDescription == "Operation was cancelled")
+        #expect(ApertureError.invalidConfiguration.localizedDescription == "Invalid configuration")
+        #expect(ApertureError.invalidAsset.localizedDescription == "Invalid asset or cannot be loaded")
+        #expect(ApertureError.unsupportedFormat.localizedDescription == "Unsupported format")
+        #expect(ApertureError.insufficientPermissions.localizedDescription == "Insufficient permissions to access the resource")
+        #expect(ApertureError.invalidTimeRange.localizedDescription == "Invalid time range specified")
+        #expect(ApertureError.cancelled.localizedDescription == "Operation was cancelled")
     }
     
     @Test func errorEquality() {
-        #expect(VideoEditorError.invalidAsset == VideoEditorError.invalidAsset)
-        #expect(VideoEditorError.cancelled == VideoEditorError.cancelled)
-        #expect(VideoEditorError.invalidAsset != VideoEditorError.cancelled)
+        #expect(ApertureError.invalidAsset == ApertureError.invalidAsset)
+        #expect(ApertureError.cancelled == ApertureError.cancelled)
+        #expect(ApertureError.invalidAsset != ApertureError.cancelled)
     }
 }

@@ -60,7 +60,7 @@ public actor ExportSession {
             if #available(iOS 17.0, macOS 14.0, *) {
                 avPresetName = AVAssetExportPresetHEVCHighestQuality
             } else {
-                throw VideoEditorError.exportFailed("H.265 codec is not available on this OS version")
+                throw ApertureError.exportFailed("H.265 codec is not available on this OS version")
             }
         }
         
@@ -68,7 +68,7 @@ public actor ExportSession {
             asset: composition,
             presetName: avPresetName
         ) else {
-            throw VideoEditorError.exportFailed("Failed to create export session")
+            throw ApertureError.exportFailed("Failed to create export session")
         }
         
         exportSession.outputURL = outputURL
@@ -92,7 +92,7 @@ public actor ExportSession {
         
         // Check for cancellation
         guard !isCancelled else {
-            throw VideoEditorError.cancelled
+            throw ApertureError.cancelled
         }
         
         // Perform export
@@ -102,11 +102,11 @@ public actor ExportSession {
         case .completed:
             progress(ExportProgress(fractionCompleted: 1.0))
         case .cancelled:
-            throw VideoEditorError.cancelled
+            throw ApertureError.cancelled
         case .failed:
-            throw VideoEditorError.exportFailed(exportSession.error?.localizedDescription ?? "Unknown error")
+            throw ApertureError.exportFailed(exportSession.error?.localizedDescription ?? "Unknown error")
         default:
-            throw VideoEditorError.exportFailed("Export ended with unexpected status")
+            throw ApertureError.exportFailed("Export ended with unexpected status")
         }
     }
     

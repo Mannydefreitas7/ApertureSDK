@@ -1,7 +1,7 @@
 import Foundation
 
 /// Errors that can occur in VideoEditorCore
-public enum VideoEditorError: Error, Equatable, Sendable {
+public enum ApertureError: Error, Equatable, Sendable {
     /// The configuration is invalid
     case invalidConfiguration
     /// A network error occurred
@@ -28,7 +28,7 @@ public enum VideoEditorError: Error, Equatable, Sendable {
     case cancelled
 }
 
-extension VideoEditorError: LocalizedError {
+extension ApertureError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .invalidConfiguration:

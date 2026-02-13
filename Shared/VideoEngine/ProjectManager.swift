@@ -637,22 +637,7 @@ extension ProjectManager {
     }
 }
 
-/// 项目错误
-enum ProjectError: LocalizedError {
-    case invalidProjectBundle
-    case mediaNotFound
-    case saveFailed
-    case loadFailed
 
-    var errorDescription: String? {
-        switch self {
-        case .invalidProjectBundle: return "无效的项目包"
-        case .mediaNotFound: return "找不到媒体文件"
-        case .saveFailed: return "保存失败"
-        case .loadFailed: return "加载失败"
-        }
-    }
-}
 
 // MARK: - FileManager 扩展
 

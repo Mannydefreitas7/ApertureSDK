@@ -22,7 +22,7 @@ public class LUTLoader {
     /// - Returns: A CIFilter that applies the LUT
     public func loadBundledLUT(named name: String) throws -> CIFilter? {
         guard let url = Bundle.module.url(forResource: name, withExtension: "cube") else {
-            throw VideoEditorError.invalidAsset
+            throw ApertureError.invalidAsset
         }
         return try loadCubeLUT(from: url)
     }

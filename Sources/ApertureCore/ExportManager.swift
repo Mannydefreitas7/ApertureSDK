@@ -5,7 +5,7 @@ import Combine
 
 /// Export preset configurations
 @available(iOS 15.0, macOS 12.0, *)
-public enum ExportPreset {
+public enum ExportPreset: Sendable {
     case hd720p
     case hd1080p
     case hd4K
@@ -50,11 +50,13 @@ public enum ExportPreset {
 
 /// Manages video export operations
 @available(iOS 15.0, macOS 12.0, *)
-public class ExportManager {
+public actor ExportManager {
     private var currentExportSession: AVAssetExportSession?
-    
-    public init() {}
-    
+    static let shared = ExportManager()
+    var progress: Double?
+
+    private init() {}
+
     /// Export a video project
     /// - Parameters:
     ///   - project: The video project to export
@@ -62,7 +64,7 @@ public class ExportManager {
     ///   - outputURL: The output URL
     ///   - progress: Optional progress callback
     /// - Throws: ApertureError if export fails
-    public func export(project: VideoProject, preset: ExportPreset, outputURL: URL, progress: ((Double) -> Void)? = nil) async throws {
+    public func export(project: VideoProject, preset: ExportPreset, outputURL: URL) async throws -> Double? {
         // Remove existing file if it exists
         try? FileManager.default.removeItem(at: outputURL)
         
@@ -71,41 +73,29 @@ public class ExportManager {
         
         // Create export session
         guard let exportSession = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
-            throw ApertureError.exportFailed
+            throw ApertureError.exportFailed("")
         }
         
-        exportSession.outputURL = outputURL
-        exportSession.outputFileType = .mp4
+
         exportSession.shouldOptimizeForNetworkUse = true
         
         self.currentExportSession = exportSession
-        
-        // Monitor progress
-        if let progress = progress {
-            let progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-                progress(Double(exportSession.progress))
+        let exportProgress = exportSession.states(updateInterval: 0.1)
+        try await exportSession.export(to: outputURL, as: .mp4)
+
+            // You can also monitor progress:
+        for await state in exportSession.states(updateInterval: 0.1) {
+            switch state {
+                case .pending: break
+                case .exporting(let completed):
+                    print("Progress:", completed.fractionCompleted)
+                    progress = completed.fractionCompleted
+                case .waiting: break
+                default:
+                    throw ApertureError.exportFailed("export for \(outputURL) failed")
             }
-            
-            defer {
-                progressTimer.invalidate()
-            }
-            
-            await exportSession.export()
-        } else {
-            await exportSession.export()
         }
-        
-        switch exportSession.status {
-        case .completed:
-            progress?(1.0)
-            return
-        case .failed:
-            throw ApertureError.exportFailed
-        case .cancelled:
-            throw ApertureError.exportFailed
-        default:
-            throw ApertureError.exportFailed
-        }
+        return progress
     }
     
     /// Cancel the current export operation
@@ -119,11 +109,11 @@ public class ExportManager {
         let composition = AVMutableComposition()
         
         guard let videoTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid) else {
-            throw ApertureError.exportFailed
+            throw ApertureError.exportFailed("")
         }
         
         guard let audioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) else {
-            throw ApertureError.exportFailed
+            throw ApertureError.exportFailed("")
         }
         
         var currentTime: CMTime = .zero

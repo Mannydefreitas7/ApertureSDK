@@ -26,31 +26,32 @@ public struct AudioVisualization {
     }
 }
 
-public class AudioVisualizer: ObservableObject {
+public actor AudioVisualizer {
     public static let shared = AudioVisualizer()
 
     @Published public var waveformData: [Float] = []
     @Published public var spectrumData: [Float] = []
     @Published public var isAnalyzing = false
 
-    private let fftSetup: vDSP_DFT_Setup?
+    nonisolated(unsafe) private let fftSetup: vDSP_DFT_Setup?
     private let fftLength = 2048
+
+    var runningSetup: vDSP_DFT_Setup? {
+        get { fftSetup }
+    }
 
     private init() {
         fftSetup = vDSP_DFT_zop_CreateSetup(nil, vDSP_Length(fftLength), .FORWARD)
     }
 
-    deinit {
-        if let setup = fftSetup {
-            vDSP_DFT_DestroySetup(setup)
-        }
-    }
+    nonisolated
+    deinit { vDSP_DFT_DestroySetup(fftSetup) }
 
     public func generateWaveform(from asset: AVAsset, samplesPerSecond: Int = 100) async throws -> [Float] {
         isAnalyzing = true
         defer { isAnalyzing = false }
 
-        guard let audioTrack = asset.tracks(withMediaType: .audio).first else {
+        guard let audioTrack = try await asset.loadTracks(withMediaType: .audio).first else {
             throw AudioVisualizerError.noAudioTrack
         }
 
@@ -86,7 +87,7 @@ public struct BeatInfo {
     }
 }
 
-public class BeatDetector: ObservableObject {
+public actor BeatDetector {
     public static let shared = BeatDetector()
 
     @Published public var detectedBeats: [BeatInfo] = []

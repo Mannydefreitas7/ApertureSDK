@@ -3,7 +3,6 @@ import Foundation
 import AVFoundation
 
 /// Represents a video editing project
-@available(iOS 15.0, macOS 12.0, *)
 public class VideoProject: Identifiable {
     public let id: UUID
     public var name: String
@@ -51,7 +50,9 @@ public class VideoProject: Identifiable {
             track.removeClip(asset)
         }
     }
-    
+
+    var instance: Self { get { self } }
+
     /// Reorder assets in the project
     /// - Parameters:
     ///   - fromIndex: The source index
@@ -72,17 +73,6 @@ public class VideoProject: Identifiable {
                 videoTrack.clips.insert(clip, at: toIndex)
             }
         }
-    }
-    
-    /// Export the project
-    /// - Parameters:
-    ///   - outputURL: The URL to export to
-    ///   - preset: The export preset
-    ///   - progress: Progress callback
-    /// - Returns: The export result
-    public func export(to outputURL: URL, preset: ExportPreset = .hd1080p, progress: ((Double) -> Void)? = nil) async throws {
-        let exporter = ExportManager()
-        try await exporter.export(project: self, preset: preset, outputURL: outputURL, progress: progress)
     }
 }
 #endif

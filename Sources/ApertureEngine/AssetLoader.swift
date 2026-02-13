@@ -17,10 +17,10 @@ public actor AssetLoader {
             return cached
         }
         
-        let asset = AVAsset(url: url)
+        let asset = AVURLAsset(url: url)
         let isPlayable = try await asset.load(.isPlayable)
         guard isPlayable else {
-            throw VideoEditorError.invalidAsset
+            throw ApertureError.invalidAsset
         }
         cache[url] = asset
         return asset
@@ -43,8 +43,21 @@ public actor AssetLoader {
         imageGenerator.requestedTimeToleranceBefore = .zero
         
         let cmTime = CMTime(seconds: time, preferredTimescale: 600)
-        let cgImage = try await imageGenerator.image(at: cmTime).image
-        return cgImage
+        return try await withCheckedThrowingContinuation { continuation in
+            imageGenerator.generateCGImagesAsynchronously(forTimes: [NSValue(time: cmTime)]) { _, image, _, result, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+
+                guard let image, result == .succeeded else {
+                    continuation.resume(throwing: ApertureError.invalidAsset)
+                    return
+                }
+
+                continuation.resume(returning: image)
+            }
+        }
     }
     
     /// Clear the asset cache

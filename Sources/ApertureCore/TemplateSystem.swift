@@ -1,6 +1,16 @@
 import Foundation
 import AVFoundation
 import SwiftUI
+#if canImport(AppKit)
+import AppKit
+typealias PlatformColor = NSColor
+typealias PlatformFont = NSFont
+#endif
+#if canImport(UIKit)
+import UIKit
+typealias PlatformColor = UIColor
+typealias PlatformFont = UIFont
+#endif
 
 // MARK: - Filter Presets
 
@@ -156,8 +166,12 @@ struct TemplatePlaceholder: Identifiable, Codable {
     var position: CGRect  // Normalized coordinates
     var startTime: Double
     var duration: Double
+	#if os(iOS)
     var animation: TextAnimation?
+	#endif
     var required: Bool
+
+
 
     init(
         id: UUID = UUID(),
@@ -178,6 +192,52 @@ struct TemplatePlaceholder: Identifiable, Codable {
         self.animation = animation
         self.required = required
     }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case type
+        case label
+        case positionX
+        case positionY
+        case positionWidth
+        case positionHeight
+        case startTime
+        case duration
+        case animation
+        case required
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let x = try container.decode(Double.self, forKey: .positionX)
+        let y = try container.decode(Double.self, forKey: .positionY)
+        let width = try container.decode(Double.self, forKey: .positionWidth)
+        let height = try container.decode(Double.self, forKey: .positionHeight)
+
+        id = try container.decode(UUID.self, forKey: .id)
+        type = try container.decode(PlaceholderType.self, forKey: .type)
+        label = try container.decode(String.self, forKey: .label)
+        position = CGRect(x: x, y: y, width: width, height: height)
+        startTime = try container.decode(Double.self, forKey: .startTime)
+        duration = try container.decode(Double.self, forKey: .duration)
+        animation = try container.decodeIfPresent(TextAnimation.self, forKey: .animation)
+        required = try container.decode(Bool.self, forKey: .required)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(type, forKey: .type)
+        try container.encode(label, forKey: .label)
+        try container.encode(Double(position.origin.x), forKey: .positionX)
+        try container.encode(Double(position.origin.y), forKey: .positionY)
+        try container.encode(Double(position.size.width), forKey: .positionWidth)
+        try container.encode(Double(position.size.height), forKey: .positionHeight)
+        try container.encode(startTime, forKey: .startTime)
+        try container.encode(duration, forKey: .duration)
+        try container.encodeIfPresent(animation, forKey: .animation)
+        try container.encode(required, forKey: .required)
+    }
 }
 
 enum PlaceholderType: String, Codable {
@@ -188,7 +248,7 @@ enum PlaceholderType: String, Codable {
 }
 
 struct TemplateTrack: Codable {
-    var type: TrackType
+    var type: Track.TrackType
     var clips: [TemplateClip]
 }
 
@@ -201,7 +261,7 @@ struct TemplateClip: Codable {
 }
 
 struct TemplateTransition: Codable {
-    var type: TransitionType
+    var type: Transition.TransitionType
     var duration: Double
     var position: Double  // Position on timeline
 }
@@ -216,21 +276,24 @@ struct TemplateMusic: Codable {
 
 // MARK: - Template Manager
 
-class TemplateManager: ObservableObject {
+actor TemplateManager {
     static let shared = TemplateManager()
 
-    @Published var templates: [VideoTemplate] = []
-    @Published var featuredTemplates: [VideoTemplate] = []
-    @Published var recentTemplates: [VideoTemplate] = []
-    @Published var favoriteTemplateIds: Set<UUID> = []
-    @Published var isLoading = false
-    @Published var searchQuery = ""
+    var templates: [VideoTemplate] = []
+    var featuredTemplates: [VideoTemplate] = []
+    var recentTemplates: [VideoTemplate] = []
+   var favoriteTemplateIds: Set<UUID> = []
+    var isLoading = false
+    var searchQuery = ""
 
     private init() {
-        loadBuiltInTemplates()
+        Task {
+            await loadBuiltInTemplates()
+        }
+
     }
 
-    private func loadBuiltInTemplates() {
+    private func loadBuiltInTemplates() async {
         templates = [
             // Intro template
             VideoTemplate(
@@ -409,7 +472,7 @@ struct CodableColor: Codable {
     let alpha: CGFloat
 
     #if os(iOS) || os(macOS)
-    var color: NSColor? {
+    var color: PlatformColor? {
         #if os(iOS)
         return UIColor(red: red, green: green, blue: blue, alpha: alpha)
         #else

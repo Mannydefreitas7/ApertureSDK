@@ -17,23 +17,18 @@ public class AudioProcessor {
         outputURL: URL,
         format: AudioFormat = .m4a
     ) async throws {
-        let asset = AVAsset(url: videoURL)
-        
+        let asset = AVURLAsset(url: videoURL)
+
         guard let exportSession = AVAssetExportSession(
             asset: asset,
             presetName: AVAssetExportPresetAppleM4A
         ) else {
-            throw ApertureError.exportFailed
+            throw ApertureError.exportFailed("Unable to create export session for \(asset.url)")
         }
         
-        exportSession.outputURL = outputURL
-        exportSession.outputFileType = format.fileType
-        
-        await exportSession.export()
-        
-        guard exportSession.status == .completed else {
-            throw ApertureError.exportFailed
-        }
+        try await exportSession.export(to: outputURL, as: format.fileType)
+
+
     }
     
     /// Replace audio track in a video
@@ -47,9 +42,9 @@ public class AudioProcessor {
         with audioURL: URL,
         outputURL: URL
     ) async throws {
-        let videoAsset = AVAsset(url: videoURL)
-        let audioAsset = AVAsset(url: audioURL)
-        
+        let videoAsset = AVURLAsset(url: videoURL)
+        let audioAsset = AVURLAsset(url: audioURL)
+
         let composition = AVMutableComposition()
         
         // Add video track
@@ -57,7 +52,7 @@ public class AudioProcessor {
             withMediaType: .video,
             preferredTrackID: kCMPersistentTrackID_Invalid
         ) else {
-            throw ApertureError.exportFailed
+            throw ApertureError.exportFailed("Unable to add video track to composition")
         }
         
         // Add audio track
@@ -65,7 +60,7 @@ public class AudioProcessor {
             withMediaType: .audio,
             preferredTrackID: kCMPersistentTrackID_Invalid
         ) else {
-            throw ApertureError.exportFailed
+            throw ApertureError.exportFailed("Unable to add audio track to composition")
         }
         
         let videoDuration = try await videoAsset.load(.duration)
@@ -88,17 +83,10 @@ public class AudioProcessor {
             asset: composition,
             presetName: AVAssetExportPresetHighestQuality
         ) else {
-            throw ApertureError.exportFailed
+            throw ApertureError.exportFailed("Unable to create export session for composition")
         }
         
-        exportSession.outputURL = outputURL
-        exportSession.outputFileType = .mp4
-        
-        await exportSession.export()
-        
-        guard exportSession.status == .completed else {
-            throw ApertureError.exportFailed
-        }
+        try await exportSession.export(to: outputURL, as: .mp4)
     }
     
     /// Trim audio to a specific time range
@@ -114,24 +102,18 @@ public class AudioProcessor {
         startTime: CMTime,
         endTime: CMTime
     ) async throws {
-        let asset = AVAsset(url: inputURL)
-        
+        let asset = AVURLAsset(url: inputURL)
+
         guard let exportSession = AVAssetExportSession(
             asset: asset,
             presetName: AVAssetExportPresetAppleM4A
         ) else {
-            throw ApertureError.exportFailed
+            throw ApertureError.exportFailed("Unable to create export session for \(inputURL)")
         }
-        
-        exportSession.outputURL = outputURL
-        exportSession.outputFileType = .m4a
+
         exportSession.timeRange = CMTimeRange(start: startTime, end: endTime)
         
-        await exportSession.export()
-        
-        guard exportSession.status == .completed else {
-            throw ApertureError.exportFailed
-        }
+        try await exportSession.export(to: outputURL, as: .m4a)
     }
 }
 

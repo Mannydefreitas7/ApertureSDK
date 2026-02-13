@@ -4,8 +4,8 @@ import AVFoundation
 
 /// Handles audio mixing operations
 @available(iOS 15.0, macOS 12.0, *)
-public class AudioMixer {
-    
+public actor AudioMixer {
+
     /// Mix background music with video audio
     /// - Parameters:
     ///   - videoURL: The video URL
@@ -21,9 +21,9 @@ public class AudioMixer {
         videoVolume: Float = 1.0,
         musicVolume: Float = 0.5
     ) async throws {
-        let videoAsset = AVAsset(url: videoURL)
-        let audioAsset = AVAsset(url: audioURL)
-        
+        let videoAsset = AVURLAsset(url: videoURL)
+        let audioAsset = AVURLAsset(url: audioURL)
+
         let composition = AVMutableComposition()
         
         // Add video track
@@ -31,7 +31,7 @@ public class AudioMixer {
             withMediaType: .video,
             preferredTrackID: kCMPersistentTrackID_Invalid
         ) else {
-            throw ApertureError.exportFailed
+            throw ApertureError.exportFailed("")
         }
         
         // Add audio tracks
@@ -42,7 +42,7 @@ public class AudioMixer {
             withMediaType: .audio,
             preferredTrackID: kCMPersistentTrackID_Invalid
         ) else {
-            throw ApertureError.exportFailed
+            throw ApertureError.exportFailed("")
         }
         
         let videoDuration = try await videoAsset.load(.duration)
@@ -70,18 +70,24 @@ public class AudioMixer {
             asset: composition,
             presetName: AVAssetExportPresetHighestQuality
         ) else {
-            throw ApertureError.exportFailed
+            throw ApertureError.exportFailed("")
         }
-        
-        exportSession.outputURL = outputURL
-        exportSession.outputFileType = .mp4
+
         exportSession.shouldOptimizeForNetworkUse = true
-        
-        await exportSession.export()
-        
-        guard exportSession.status == .completed else {
-            throw ApertureError.exportFailed
+        try await exportSession.export(to: outputURL, as: .mp4, isolation: nil)
+
+            // You can also monitor progress:
+        for await state in exportSession.states(updateInterval: 0.1) {
+            switch state {
+                case .pending: break
+                case .exporting(let progress):
+                    print("Progress:", progress.fractionCompleted)
+                case .waiting: break
+                default:
+                    throw ApertureError.exportFailed("")
+            }
         }
+
     }
     
     /// Adjust audio volume for a video
@@ -95,23 +101,29 @@ public class AudioMixer {
         outputURL: URL,
         volume: Float
     ) async throws {
-        let asset = AVAsset(url: inputURL)
-        
+        let asset = AVURLAsset(url: inputURL)
+
         guard let exportSession = AVAssetExportSession(
             asset: asset,
             presetName: AVAssetExportPresetHighestQuality
         ) else {
-            throw ApertureError.exportFailed
+            throw ApertureError.exportFailed("")
         }
-        
-        exportSession.outputURL = outputURL
-        exportSession.outputFileType = .mp4
+
         exportSession.audioMix = try await createAudioMix(for: asset, volume: volume)
-        
-        await exportSession.export()
-        
-        guard exportSession.status == .completed else {
-            throw ApertureError.exportFailed
+    
+        try await exportSession.export(to: outputURL, as: .mp4, isolation: nil)
+
+            // You can also monitor progress:
+        for await state in exportSession.states(updateInterval: 0.1) {
+            switch state {
+                case .pending: break
+                case .exporting(let progress):
+                    print("Progress:", progress.fractionCompleted)
+                case .waiting: break
+                default:
+                    throw ApertureError.exportFailed("")
+            }
         }
     }
     

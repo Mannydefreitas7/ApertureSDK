@@ -2,11 +2,17 @@ import Foundation
 import AVFoundation
 import CoreImage
 import CoreImage.CIFilterBuiltins
+import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 // MARK: - Picture in Picture
 
 /// Picture in picture configuration
-struct PictureInPicture: Identifiable, Equatable {
+struct PictureInPicture: Identifiable {
     let id: UUID
     var overlayClipId: UUID  // Overlay clip
 
@@ -18,14 +24,14 @@ struct PictureInPicture: Identifiable, Equatable {
 
     /// Border
     var borderWidth: CGFloat = 2
-    var borderColor: CodableColor = CodableColor(.white)
+    var borderColor: Color = Color(.white)
 
     /// Corner radius
     var cornerRadius: CGFloat = 8
 
     /// Shadow
     var shadowEnabled: Bool = true
-    var shadowColor: CodableColor = CodableColor(.black.withAlphaComponent(0.5))
+    var shadowColor: Color = Color(.black.withAlphaComponent(0.5))
     var shadowOffset: CGSize = CGSize(width: 2, height: 2)
     var shadowRadius: CGFloat = 8
 
@@ -85,7 +91,7 @@ struct ChromaKey: Identifiable, Equatable {
     let id: UUID
 
     /// Color to remove
-    var keyColor: CodableColor = CodableColor(.green)
+    var keyColor: Color = Color(.green)
 
     /// Color tolerance
     var tolerance: Float = 0.4
@@ -112,9 +118,18 @@ struct ChromaKey: Identifiable, Equatable {
         let size = 64
         var cubeData = [Float](repeating: 0, count: size * size * size * 4)
 
-        let keyR = Float(keyColor.red)
-        let keyG = Float(keyColor.green)
-        let keyB = Float(keyColor.blue)
+        let ciKeyColor: CIColor
+#if canImport(UIKit)
+        ciKeyColor = CIColor(color: UIColor(keyColor))
+#elseif canImport(AppKit)
+        ciKeyColor = CIColor(color: NSColor(keyColor))
+#else
+        ciKeyColor = CIColor(red: 0, green: 1, blue: 0)
+#endif
+
+        let keyR = Float(ciKeyColor.red)
+        let keyG = Float(ciKeyColor.green)
+        let keyB = Float(ciKeyColor.blue)
 
         for b in 0..<size {
             for g in 0..<size {
@@ -352,12 +367,12 @@ struct SpeedCurve: Identifiable, Equatable {
 // MARK: - Split Screen Effects
 
 /// Split screen effect
-struct SplitScreen: Identifiable, Equatable {
+struct SplitScreen: Identifiable {
     let id: UUID
     var layout: SplitLayout
     var clips: [UUID]  // Clip IDs participating in split screen
     var borderWidth: CGFloat = 2
-    var borderColor: CodableColor = CodableColor(.white)
+    var borderColor: Color = Color(.white)
 
     init(id: UUID = UUID(), layout: SplitLayout, clips: [UUID]) {
         self.id = id

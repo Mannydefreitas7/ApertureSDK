@@ -56,7 +56,8 @@ let package = Package(
             dependencies: ["ApertureCore", "ApertureEngine"]),
         .target(
             name: "ApertureUI",
-            dependencies: ["ApertureCore", "ApertureEngine", "ApertureExport"]),
+            dependencies: ["ApertureCore", "ApertureEngine", "ApertureExport"],
+            exclude: ["iOS", "macOS"]),
         .target(
             name: "ApertureAssets",
             dependencies: ["ApertureCore"],

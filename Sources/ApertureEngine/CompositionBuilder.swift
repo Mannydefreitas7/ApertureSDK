@@ -39,7 +39,7 @@ public class CompositionBuilder {
             withMediaType: .video,
             preferredTrackID: kCMPersistentTrackID_Invalid
         ) else {
-            throw VideoEditorError.exportFailed("Failed to create video track")
+            throw ApertureError.exportFailed("Failed to create video track")
         }
         
         // Also add audio from video clips
@@ -83,7 +83,7 @@ public class CompositionBuilder {
             withMediaType: .audio,
             preferredTrackID: kCMPersistentTrackID_Invalid
         ) else {
-            throw VideoEditorError.exportFailed("Failed to create audio track")
+            throw ApertureError.exportFailed("Failed to create audio track")
         }
         
         var currentTime: CMTime = .zero

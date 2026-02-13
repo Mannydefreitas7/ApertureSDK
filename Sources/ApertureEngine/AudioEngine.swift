@@ -114,7 +114,7 @@ public class AudioEngine {
             asset: asset,
             presetName: AVAssetExportPresetAppleM4A
         ) else {
-            throw VideoEditorError.exportFailed("Failed to create export session")
+            throw ApertureError.exportFailed("Failed to create export session")
         }
 
         try? FileManager.default.removeItem(at: outputURL)
@@ -124,7 +124,7 @@ public class AudioEngine {
         await exportSession.export()
 
         guard exportSession.status == .completed else {
-            throw VideoEditorError.exportFailed("Audio extraction failed")
+            throw ApertureError.exportFailed("Audio extraction failed")
         }
     }
 }

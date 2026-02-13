@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BiomeSettings">
+    <option name="applySafeFixesOnSave" value="true" />
+    <option name="enableLspFormat" value="true" />
+    <option name="formatOnSave" value="true" />
+    <option name="sortImportOnSave" value="true" />
+  </component>
+  <component name="FormatOnSaveOptions">
+    <option name="myRunOnSave" value="true" />
+  </component>
+  <component name="GBrowserService">{}</component>
+  <component name="KubernetesApiProvider">{}</component>
+  <component name="OptimizeOnSaveOptions">
+    <option name="myRunOnSave" value="true" />
+  </component>
+  <component name="ProjectInspectionProfilesVisibleTreeState">
+    <entry key="Project Default">
+      <profile-state>
+        <selected-state>
+          <State>
+            <id>User defined</id>
+          </State>
+        </selected-state>
+      </profile-state>
+    </entry>
+  </component>
+</project>

@@ -2,7 +2,7 @@
 //  UIEnhancements.swift
 //  VideoEditor
 //
-//  界面和交互增强模块 - 快捷键、布局、主题、多显示器、手势
+//  UI and Interaction Enhancement Module - Keyboard Shortcuts, Layout, Theme, Multi-Display, Gestures
 //
 
 import SwiftUI
@@ -15,9 +15,9 @@ import Carbon
 import UIKit
 #endif
 
-// MARK: - 快捷键系统
+// MARK: - Keyboard Shortcut System
 
-/// 快捷键定义
+/// Keyboard shortcut definition
 struct KeyboardShortcut: Identifiable, Codable, Hashable {
     let id: UUID
     var action: ShortcutAction
@@ -67,7 +67,7 @@ struct KeyboardShortcut: Identifiable, Codable, Hashable {
     }
 }
 
-/// 快捷键修饰符
+/// Keyboard shortcut modifiers
 struct KeyModifiers: OptionSet, Codable, Hashable {
     let rawValue: UInt
 
@@ -79,91 +79,91 @@ struct KeyModifiers: OptionSet, Codable, Hashable {
     static let none = KeyModifiers([])
 }
 
-/// 快捷键动作
+/// Keyboard shortcut actions
 enum ShortcutAction: String, Codable, CaseIterable {
-    // 文件
-    case newProject = "新建项目"
-    case openProject = "打开项目"
-    case saveProject = "保存项目"
-    case saveProjectAs = "另存为"
-    case exportVideo = "导出视频"
-    case importMedia = "导入媒体"
+    // File
+    case newProject = "New Project"
+    case openProject = "Open Project"
+    case saveProject = "Save Project"
+    case saveProjectAs = "Save As"
+    case exportVideo = "Export Video"
+    case importMedia = "Import Media"
 
-    // 编辑
-    case undo = "撤销"
-    case redo = "重做"
-    case cut = "剪切"
-    case copy = "复制"
-    case paste = "粘贴"
-    case delete = "删除"
-    case selectAll = "全选"
-    case deselectAll = "取消选择"
-    case duplicate = "复制片段"
+    // Edit
+    case undo = "Undo"
+    case redo = "Redo"
+    case cut = "Cut"
+    case copy = "Copy"
+    case paste = "Paste"
+    case delete = "Delete"
+    case selectAll = "Select All"
+    case deselectAll = "Deselect All"
+    case duplicate = "Duplicate Clip"
 
-    // 播放
-    case playPause = "播放/暂停"
-    case stop = "停止"
-    case jumpToStart = "跳到开头"
-    case jumpToEnd = "跳到结尾"
-    case frameForward = "下一帧"
-    case frameBackward = "上一帧"
-    case jumpForward5s = "前进5秒"
-    case jumpBackward5s = "后退5秒"
-    case toggleLoop = "循环播放"
-    case speedUp = "加速"
-    case speedDown = "减速"
+    // Playback
+    case playPause = "Play/Pause"
+    case stop = "Stop"
+    case jumpToStart = "Jump to Start"
+    case jumpToEnd = "Jump to End"
+    case frameForward = "Next Frame"
+    case frameBackward = "Previous Frame"
+    case jumpForward5s = "Jump Forward 5s"
+    case jumpBackward5s = "Jump Backward 5s"
+    case toggleLoop = "Toggle Loop"
+    case speedUp = "Speed Up"
+    case speedDown = "Speed Down"
 
-    // 时间线
-    case splitClip = "分割片段"
-    case rippleDelete = "波纹删除"
-    case insertGap = "插入间隙"
-    case nudgeLeft = "微移左"
-    case nudgeRight = "微移右"
-    case zoomIn = "放大"
-    case zoomOut = "缩小"
-    case zoomToFit = "适合窗口"
-    case snapToggle = "吸附开关"
-    case magneticTimeline = "磁性时间线"
+    // Timeline
+    case splitClip = "Split Clip"
+    case rippleDelete = "Ripple Delete"
+    case insertGap = "Insert Gap"
+    case nudgeLeft = "Nudge Left"
+    case nudgeRight = "Nudge Right"
+    case zoomIn = "Zoom In"
+    case zoomOut = "Zoom Out"
+    case zoomToFit = "Zoom to Fit"
+    case snapToggle = "Toggle Snap"
+    case magneticTimeline = "Magnetic Timeline"
 
-    // 标记
-    case markIn = "标记入点"
-    case markOut = "标记出点"
-    case clearMarks = "清除标记"
-    case addMarker = "添加标记"
-    case goToNextMarker = "下一标记"
-    case goToPrevMarker = "上一标记"
+    // Markers
+    case markIn = "Mark In"
+    case markOut = "Mark Out"
+    case clearMarks = "Clear Marks"
+    case addMarker = "Add Marker"
+    case goToNextMarker = "Next Marker"
+    case goToPrevMarker = "Previous Marker"
 
-    // 视图
-    case toggleFullscreen = "全屏"
-    case toggleTimeline = "显示时间线"
-    case toggleInspector = "显示检查器"
-    case toggleLibrary = "显示媒体库"
-    case toggleEffects = "显示效果面板"
-    case focusPreview = "聚焦预览"
-    case focusTimeline = "聚焦时间线"
+    // View
+    case toggleFullscreen = "Toggle Fullscreen"
+    case toggleTimeline = "Toggle Timeline"
+    case toggleInspector = "Toggle Inspector"
+    case toggleLibrary = "Toggle Media Library"
+    case toggleEffects = "Toggle Effects Panel"
+    case focusPreview = "Focus Preview"
+    case focusTimeline = "Focus Timeline"
 
-    // 工具
-    case selectionTool = "选择工具"
-    case razorTool = "剃刀工具"
-    case handTool = "手形工具"
-    case zoomTool = "缩放工具"
-    case cropTool = "裁剪工具"
-    case textTool = "文字工具"
+    // Tools
+    case selectionTool = "Selection Tool"
+    case razorTool = "Razor Tool"
+    case handTool = "Hand Tool"
+    case zoomTool = "Zoom Tool"
+    case cropTool = "Crop Tool"
+    case textTool = "Text Tool"
 }
 
-/// 快捷键分类
+/// Keyboard shortcut categories
 enum ShortcutCategory: String, Codable, CaseIterable {
-    case general = "通用"
-    case file = "文件"
-    case edit = "编辑"
-    case playback = "播放"
-    case timeline = "时间线"
-    case markers = "标记"
-    case view = "视图"
-    case tools = "工具"
+    case general = "General"
+    case file = "File"
+    case edit = "Edit"
+    case playback = "Playback"
+    case timeline = "Timeline"
+    case markers = "Markers"
+    case view = "View"
+    case tools = "Tools"
 }
 
-/// 快捷键管理器
+/// Keyboard shortcut manager
 class KeyboardShortcutManager: ObservableObject {
     static let shared = KeyboardShortcutManager()
 
@@ -179,10 +179,10 @@ class KeyboardShortcutManager: ObservableObject {
         setupEventMonitor()
     }
 
-    /// 加载默认快捷键
+    /// Load default shortcuts
     private func loadDefaultShortcuts() {
         shortcuts = [
-            // 文件
+            // File
             KeyboardShortcut(action: .newProject, keyCode: 0x2D, modifiers: .command, category: .file),
             KeyboardShortcut(action: .openProject, keyCode: 0x1F, modifiers: .command, category: .file),
             KeyboardShortcut(action: .saveProject, keyCode: 0x01, modifiers: .command, category: .file),
@@ -190,7 +190,7 @@ class KeyboardShortcutManager: ObservableObject {
             KeyboardShortcut(action: .exportVideo, keyCode: 0x0E, modifiers: .command, category: .file),
             KeyboardShortcut(action: .importMedia, keyCode: 0x22, modifiers: .command, category: .file),
 
-            // 编辑
+            // Edit
             KeyboardShortcut(action: .undo, keyCode: 0x06, modifiers: .command, category: .edit),
             KeyboardShortcut(action: .redo, keyCode: 0x06, modifiers: [.command, .shift], category: .edit),
             KeyboardShortcut(action: .cut, keyCode: 0x07, modifiers: .command, category: .edit),
@@ -200,7 +200,7 @@ class KeyboardShortcutManager: ObservableObject {
             KeyboardShortcut(action: .selectAll, keyCode: 0x00, modifiers: .command, category: .edit),
             KeyboardShortcut(action: .duplicate, keyCode: 0x02, modifiers: .command, category: .edit),
 
-            // 播放
+            // Playback
             KeyboardShortcut(action: .playPause, keyCode: 0x31, modifiers: .none, category: .playback),
             KeyboardShortcut(action: .stop, keyCode: 0x28, modifiers: .none, category: .playback),
             KeyboardShortcut(action: .jumpToStart, keyCode: 0x73, modifiers: .none, category: .playback),
@@ -211,7 +211,7 @@ class KeyboardShortcutManager: ObservableObject {
             KeyboardShortcut(action: .jumpBackward5s, keyCode: 0x7B, modifiers: .shift, category: .playback),
             KeyboardShortcut(action: .toggleLoop, keyCode: 0x25, modifiers: .command, category: .playback),
 
-            // 时间线
+            // Timeline
             KeyboardShortcut(action: .splitClip, keyCode: 0x0B, modifiers: .command, category: .timeline),
             KeyboardShortcut(action: .rippleDelete, keyCode: 0x33, modifiers: .shift, category: .timeline),
             KeyboardShortcut(action: .zoomIn, keyCode: 0x18, modifiers: .command, category: .timeline),
@@ -219,19 +219,19 @@ class KeyboardShortcutManager: ObservableObject {
             KeyboardShortcut(action: .zoomToFit, keyCode: 0x06, modifiers: [.command, .shift], category: .timeline),
             KeyboardShortcut(action: .snapToggle, keyCode: 0x2D, modifiers: .none, category: .timeline),
 
-            // 标记
+            // Markers
             KeyboardShortcut(action: .markIn, keyCode: 0x22, modifiers: .none, category: .markers),
             KeyboardShortcut(action: .markOut, keyCode: 0x1F, modifiers: .none, category: .markers),
             KeyboardShortcut(action: .clearMarks, keyCode: 0x07, modifiers: .option, category: .markers),
             KeyboardShortcut(action: .addMarker, keyCode: 0x2E, modifiers: .none, category: .markers),
 
-            // 视图
+            // View
             KeyboardShortcut(action: .toggleFullscreen, keyCode: 0x03, modifiers: [.command, .control], category: .view),
             KeyboardShortcut(action: .toggleTimeline, keyCode: 0x11, modifiers: .command, category: .view),
             KeyboardShortcut(action: .toggleInspector, keyCode: 0x22, modifiers: [.command, .option], category: .view),
             KeyboardShortcut(action: .toggleLibrary, keyCode: 0x25, modifiers: [.command, .option], category: .view),
 
-            // 工具
+            // Tools
             KeyboardShortcut(action: .selectionTool, keyCode: 0x00, modifiers: .none, category: .tools),
             KeyboardShortcut(action: .razorTool, keyCode: 0x0B, modifiers: .none, category: .tools),
             KeyboardShortcut(action: .handTool, keyCode: 0x04, modifiers: .none, category: .tools),
@@ -240,7 +240,7 @@ class KeyboardShortcutManager: ObservableObject {
         ]
     }
 
-    /// 设置事件监听
+    /// Setup event monitoring
     private func setupEventMonitor() {
         #if canImport(AppKit)
         eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
@@ -271,7 +271,7 @@ class KeyboardShortcutManager: ObservableObject {
     }
     #endif
 
-    /// 更新快捷键
+    /// Update shortcut
     func updateShortcut(_ shortcut: KeyboardShortcut, keyCode: UInt16, modifiers: KeyModifiers) {
         if let index = shortcuts.firstIndex(where: { $0.id == shortcut.id }) {
             shortcuts[index].keyCode = keyCode
@@ -280,18 +280,18 @@ class KeyboardShortcutManager: ObservableObject {
         }
     }
 
-    /// 重置为默认
+    /// Reset to default
     func resetToDefault() {
         loadDefaultShortcuts()
         saveShortcuts()
     }
 
-    /// 导出快捷键配置
+    /// Export shortcut configuration
     func exportShortcuts() -> Data? {
         return try? JSONEncoder().encode(shortcuts)
     }
 
-    /// 导入快捷键配置
+    /// Import shortcut configuration
     func importShortcuts(from data: Data) {
         if let imported = try? JSONDecoder().decode([KeyboardShortcut].self, from: data) {
             shortcuts = imported
@@ -314,9 +314,9 @@ class KeyboardShortcutManager: ObservableObject {
     }
 }
 
-// MARK: - 界面布局系统
+// MARK: - Interface Layout System
 
-/// 布局配置
+/// Layout configuration
 struct WorkspaceLayout: Identifiable, Codable {
     let id: UUID
     var name: String
@@ -331,7 +331,7 @@ struct WorkspaceLayout: Identifiable, Codable {
     }
 }
 
-/// 面板配置
+/// Panel configuration
 struct PanelConfig: Identifiable, Codable {
     let id: UUID
     var panelType: PanelType
@@ -352,34 +352,34 @@ struct PanelConfig: Identifiable, Codable {
     }
 }
 
-/// 面板类型
+/// Panel types
 enum PanelType: String, Codable, CaseIterable {
-    case preview = "预览"
-    case timeline = "时间线"
-    case inspector = "检查器"
-    case mediaLibrary = "媒体库"
-    case effects = "效果"
-    case audio = "音频"
-    case colors = "颜色"
-    case text = "文字"
-    case transitions = "转场"
-    case keyframes = "关键帧"
-    case histogram = "直方图"
-    case vectorscope = "矢量示波器"
-    case waveform = "波形"
+    case preview = "Preview"
+    case timeline = "Timeline"
+    case inspector = "Inspector"
+    case mediaLibrary = "Media Library"
+    case effects = "Effects"
+    case audio = "Audio"
+    case colors = "Colors"
+    case text = "Text"
+    case transitions = "Transitions"
+    case keyframes = "Keyframes"
+    case histogram = "Histogram"
+    case vectorscope = "Vectorscope"
+    case waveform = "Waveform"
 }
 
-/// 面板位置
+/// Panel positions
 enum PanelPosition: String, Codable {
-    case left = "左侧"
-    case right = "右侧"
-    case top = "顶部"
-    case bottom = "底部"
-    case center = "中心"
-    case floating = "浮动"
+    case left = "Left"
+    case right = "Right"
+    case top = "Top"
+    case bottom = "Bottom"
+    case center = "Center"
+    case floating = "Floating"
 }
 
-/// 面板标签页
+/// Panel tab
 struct PanelTab: Identifiable, Codable {
     let id: UUID
     var title: String
@@ -387,7 +387,7 @@ struct PanelTab: Identifiable, Codable {
     var isActive: Bool
 }
 
-/// 布局管理器
+/// Layout manager
 class WorkspaceLayoutManager: ObservableObject {
     static let shared = WorkspaceLayoutManager()
 
@@ -406,7 +406,7 @@ class WorkspaceLayoutManager: ObservableObject {
         loadDefaultLayouts()
     }
 
-    /// 加载默认布局
+    /// Load default layouts
     private func loadDefaultLayouts() {
         layouts = [
             createDefaultLayout(),
@@ -420,7 +420,7 @@ class WorkspaceLayoutManager: ObservableObject {
     }
 
     private func createDefaultLayout() -> WorkspaceLayout {
-        var layout = WorkspaceLayout(name: "默认", isDefault: true)
+        var layout = WorkspaceLayout(name: "Default", isDefault: true)
         layout.panels = [
             PanelConfig(panelType: .mediaLibrary, position: .left, size: CGSize(width: 300, height: 600)),
             PanelConfig(panelType: .preview, position: .center, size: CGSize(width: 800, height: 450)),
@@ -431,7 +431,7 @@ class WorkspaceLayoutManager: ObservableObject {
     }
 
     private func createEditingLayout() -> WorkspaceLayout {
-        var layout = WorkspaceLayout(name: "剪辑")
+        var layout = WorkspaceLayout(name: "Editing")
         layout.panels = [
             PanelConfig(panelType: .mediaLibrary, position: .left, size: CGSize(width: 250, height: 500)),
             PanelConfig(panelType: .effects, position: .left, size: CGSize(width: 250, height: 300)),
@@ -443,7 +443,7 @@ class WorkspaceLayoutManager: ObservableObject {
     }
 
     private func createColorGradingLayout() -> WorkspaceLayout {
-        var layout = WorkspaceLayout(name: "调色")
+        var layout = WorkspaceLayout(name: "Color Grading")
         layout.panels = [
             PanelConfig(panelType: .preview, position: .center, size: CGSize(width: 800, height: 450)),
             PanelConfig(panelType: .colors, position: .right, size: CGSize(width: 400, height: 800)),
@@ -456,7 +456,7 @@ class WorkspaceLayoutManager: ObservableObject {
     }
 
     private func createAudioEditingLayout() -> WorkspaceLayout {
-        var layout = WorkspaceLayout(name: "音频")
+        var layout = WorkspaceLayout(name: "Audio Editing")
         layout.panels = [
             PanelConfig(panelType: .preview, position: .top, size: CGSize(width: 600, height: 300)),
             PanelConfig(panelType: .audio, position: .right, size: CGSize(width: 400, height: 600)),
@@ -466,7 +466,7 @@ class WorkspaceLayoutManager: ObservableObject {
     }
 
     private func createCompactLayout() -> WorkspaceLayout {
-        var layout = WorkspaceLayout(name: "紧凑")
+        var layout = WorkspaceLayout(name: "Compact")
         layout.panels = [
             PanelConfig(panelType: .preview, position: .center, size: CGSize(width: 1000, height: 600)),
             PanelConfig(panelType: .timeline, position: .bottom, size: CGSize(width: 1400, height: 200))

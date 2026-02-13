@@ -33,19 +33,19 @@ struct VideoFilter: Identifiable, Equatable {
     }
 }
 
-/// 滤镜参数
+/// Filter parameters
 struct FilterParameters: Equatable {
-    // 基础调整
+    // Basic adjustments
     var brightness: Float = 0       // -1.0 to 1.0
     var contrast: Float = 1.0       // 0.0 to 4.0
     var saturation: Float = 1.0     // 0.0 to 2.0
     var exposure: Float = 0         // -2.0 to 2.0
 
-    // 色温色调
+    // Temperature and tint
     var temperature: Float = 6500   // 2000 to 10000 Kelvin
     var tint: Float = 0             // -150 to 150
 
-    // 高级调整
+    // Advanced adjustments
     var highlights: Float = 1.0     // 0.0 to 2.0
     var shadows: Float = 0          // -1.0 to 1.0
     var vibrance: Float = 0         // -1.0 to 1.0
@@ -54,28 +54,28 @@ struct FilterParameters: Equatable {
     var grain: Float = 0            // 0.0 to 1.0
 }
 
-/// 滤镜类型
+/// Filter type
 enum FilterType: String, CaseIterable, Codable {
-    // 无滤镜
-    case none = "原片"
+    // No filter
+    case none = "Original"
 
-    // 预设滤镜
-    case vivid = "鲜艳"
-    case dramatic = "戏剧"
-    case mono = "单色"
-    case noir = "黑白电影"
-    case silvertone = "银色调"
-    case vintage = "复古"
-    case warm = "暖色"
-    case cool = "冷色"
-    case fade = "褪色"
-    case chrome = "铬黄"
-    case process = "冲印"
-    case transfer = "转印"
-    case instant = "即时"
+    // Preset filters
+    case vivid = "Vivid"
+    case dramatic = "Dramatic"
+    case mono = "Mono"
+    case noir = "Noir"
+    case silvertone = "Silver Tone"
+    case vintage = "Vintage"
+    case warm = "Warm"
+    case cool = "Cool"
+    case fade = "Fade"
+    case chrome = "Chrome"
+    case process = "Process"
+    case transfer = "Transfer"
+    case instant = "Instant"
 
-    // 调整类
-    case colorAdjust = "色彩调整"
+    // Adjustment class
+    case colorAdjust = "Color Adjust"
 
     var icon: String {
         switch self {
@@ -99,7 +99,7 @@ enum FilterType: String, CaseIterable, Codable {
 
     var displayName: String { rawValue }
 
-    /// 创建对应的 CIFilter
+    /// Create corresponding CIFilter
     func makeCIFilter(intensity: Float, parameters: FilterParameters) -> CIFilter? {
         switch self {
         case .none:
@@ -157,18 +157,18 @@ enum FilterType: String, CaseIterable, Codable {
             return CIFilter(name: "CIPhotoEffectInstant")
 
         case .colorAdjust:
-            // 自定义色彩调整需要链式滤镜
+            // Custom color adjustments require filter chains
             return nil
         }
     }
 }
 
-/// 滤镜处理器
+/// Filter processor
 class FilterProcessor {
     private let context: CIContext
 
     init() {
-        // 使用 Metal 加速
+        // Use Metal acceleration
         if let metalDevice = MTLCreateSystemDefaultDevice() {
             context = CIContext(mtlDevice: metalDevice)
         } else {
@@ -176,11 +176,11 @@ class FilterProcessor {
         }
     }
 
-    /// 应用滤镜到图像
+    /// Apply filter to image
     func apply(filter: VideoFilter, to image: CIImage) -> CIImage {
         var outputImage = image
 
-        // 先应用预设滤镜
+        // First apply preset filter
         if let ciFilter = filter.makeCIFilter() {
             ciFilter.setValue(outputImage, forKey: kCIInputImageKey)
             if let result = ciFilter.outputImage {
@@ -188,17 +188,17 @@ class FilterProcessor {
             }
         }
 
-        // 应用自定义调整
+        // Apply custom adjustments
         outputImage = applyColorAdjustments(to: outputImage, parameters: filter.parameters)
 
         return outputImage
     }
 
-    /// 应用色彩调整
+    /// Apply color adjustments
     private func applyColorAdjustments(to image: CIImage, parameters: FilterParameters) -> CIImage {
         var outputImage = image
 
-        // 亮度、对比度、饱和度
+        // Brightness, contrast, saturation
         if parameters.brightness != 0 || parameters.contrast != 1.0 || parameters.saturation != 1.0 {
             if let filter = CIFilter(name: "CIColorControls") {
                 filter.setValue(outputImage, forKey: kCIInputImageKey)
@@ -211,7 +211,7 @@ class FilterProcessor {
             }
         }
 
-        // 曝光
+        // Exposure
         if parameters.exposure != 0 {
             if let filter = CIFilter(name: "CIExposureAdjust") {
                 filter.setValue(outputImage, forKey: kCIInputImageKey)
@@ -222,7 +222,7 @@ class FilterProcessor {
             }
         }
 
-        // 色温
+        // Temperature
         if parameters.temperature != 6500 || parameters.tint != 0 {
             if let filter = CIFilter(name: "CITemperatureAndTint") {
                 filter.setValue(outputImage, forKey: kCIInputImageKey)
@@ -234,7 +234,7 @@ class FilterProcessor {
             }
         }
 
-        // 高光和阴影
+        // Highlights and shadows
         if parameters.highlights != 1.0 || parameters.shadows != 0 {
             if let filter = CIFilter(name: "CIHighlightShadowAdjust") {
                 filter.setValue(outputImage, forKey: kCIInputImageKey)
@@ -246,7 +246,7 @@ class FilterProcessor {
             }
         }
 
-        // 自然饱和度
+        // Vibrance
         if parameters.vibrance != 0 {
             if let filter = CIFilter(name: "CIVibrance") {
                 filter.setValue(outputImage, forKey: kCIInputImageKey)
@@ -257,7 +257,7 @@ class FilterProcessor {
             }
         }
 
-        // 锐化
+        // Sharpness
         if parameters.sharpness > 0 {
             if let filter = CIFilter(name: "CISharpenLuminance") {
                 filter.setValue(outputImage, forKey: kCIInputImageKey)
@@ -268,7 +268,7 @@ class FilterProcessor {
             }
         }
 
-        // 暗角
+        // Vignette
         if parameters.vignette > 0 {
             if let filter = CIFilter(name: "CIVignette") {
                 filter.setValue(outputImage, forKey: kCIInputImageKey)
@@ -283,7 +283,7 @@ class FilterProcessor {
         return outputImage
     }
 
-    /// 生成缩略图预览
+    /// Generate thumbnail preview
     func generatePreview(filter: VideoFilter, from sourceImage: CGImage, size: CGSize) -> CGImage? {
         let ciImage = CIImage(cgImage: sourceImage)
         let filteredImage = apply(filter: filter, to: ciImage)
@@ -292,7 +292,7 @@ class FilterProcessor {
     }
 }
 
-/// 用于视频合成的自定义滤镜 Compositor
+/// Custom filter compositor for video composition
 class FilteredCompositor: NSObject, AVVideoCompositing {
     private let filterProcessor = FilterProcessor()
     private var filter: VideoFilter?
@@ -316,14 +316,14 @@ class FilteredCompositor: NSObject, AVVideoCompositing {
     }
 
     func renderContextChanged(_ newRenderContext: AVVideoCompositionRenderContext) {
-        // 渲染上下文改变时的处理
+        // Handle render context changes
     }
 
     func startRequest(_ request: AVAsynchronousVideoCompositionRequest) {
         guard let filter = filter,
               filter.type != .none,
               let sourceBuffer = request.sourceFrame(byTrackID: request.sourceTrackIDs.first?.int32Value ?? 0) else {
-            // 无滤镜时直接返回原帧
+            // Return original frame when no filter applied
             if let sourceBuffer = request.sourceFrame(byTrackID: request.sourceTrackIDs.first?.int32Value ?? 0) {
                 request.finish(withComposedVideoFrame: sourceBuffer)
             } else {
@@ -332,19 +332,19 @@ class FilteredCompositor: NSObject, AVVideoCompositing {
             return
         }
 
-        // 创建 CIImage
+        // Create CIImage
         let ciImage = CIImage(cvPixelBuffer: sourceBuffer)
 
-        // 应用滤镜
+        // Apply filter
         let filteredImage = filterProcessor.apply(filter: filter, to: ciImage)
 
-        // 获取输出 buffer
+        // Get output buffer
         guard let outputBuffer = request.renderContext.newPixelBuffer() else {
             request.finish(with: NSError(domain: "FilteredCompositor", code: -2))
             return
         }
 
-        // 渲染到输出 buffer
+        // Render to output buffer
         let context = CIContext()
         context.render(filteredImage, to: outputBuffer)
 
@@ -352,6 +352,6 @@ class FilteredCompositor: NSObject, AVVideoCompositing {
     }
 
     func cancelAllPendingVideoCompositionRequests() {
-        // 取消所有待处理请求
+        // Cancel all pending requests
     }
 }

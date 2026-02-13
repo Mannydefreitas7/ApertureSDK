@@ -2,13 +2,13 @@ import Foundation
 import AVFoundation
 import Accelerate
 
-/// 音频引擎 - 处理音频波形、效果、分析
+/// Audio Engine - Handles audio waveforms, effects, and analysis
 actor AudioEngine {
 
-    // MARK: - 波形生成
+    // MARK: - Waveform Generation
     static let shared: AudioEngine = .init()
 
-    /// 生成音频波形数据
+    /// Generate audio waveform data
     static func generateWaveform(
         from asset: AVAsset,
         samplesPerSecond: Int = 10
@@ -53,7 +53,7 @@ actor AudioEngine {
             }
         }
 
-        // 下采样到目标数量
+        // Downsample to target count
         let samplesPerBucket = max(1, sampleBuffer.count / totalSamples)
 
         for i in 0..<totalSamples {
@@ -72,7 +72,7 @@ actor AudioEngine {
         return samples
     }
 
-    /// 生成缩略波形（用于时间线显示）
+    /// Generate thumbnail waveform (for timeline display)
     static func generateThumbnailWaveform(
         from asset: AVAsset,
         width: Int
@@ -81,12 +81,12 @@ actor AudioEngine {
     }
 }
 
-// MARK: - 音频效果
+// MARK: - Audio Effects
 
-/// 音频效果处理器
+/// Audio effect processor
 class AudioEffectProcessor {
 
-    /// 音频淡入淡出
+    /// Audio fade in/fade out
     struct FadeEffect {
         var fadeInDuration: CMTime = .zero
         var fadeOutDuration: CMTime = .zero
@@ -94,12 +94,12 @@ class AudioEffectProcessor {
         var fadeOutCurve: FadeCurve = .linear
     }
 
-    /// 淡变曲线类型
+    /// Fade curve type
     enum FadeCurve: String, CaseIterable {
-        case linear = "线性"
-        case exponential = "指数"
-        case logarithmic = "对数"
-        case sCurve = "S曲线"
+        case linear = "Linear"
+        case exponential = "Exponential"
+        case logarithmic = "Logarithmic"
+        case sCurve = "S-Curve"
 
         func value(at progress: Float) -> Float {
             switch self {
@@ -115,7 +115,7 @@ class AudioEffectProcessor {
         }
     }
 
-    /// 应用淡入淡出到音频轨道
+    /// Apply fade to audio track
     static func applyFade(
         to track: AVMutableCompositionTrack,
         fade: FadeEffect,
@@ -126,21 +126,21 @@ class AudioEffectProcessor {
 
         var volumeRamps: [(time: CMTime, volume: Float)] = []
 
-        // 淡入
+        // Fade in
         if fade.fadeInDuration > .zero {
             let fadeInEnd = CMTimeAdd(timeRange.start, fade.fadeInDuration)
             volumeRamps.append((timeRange.start, 0.0))
             volumeRamps.append((fadeInEnd, 1.0))
         }
 
-        // 淡出
+        // Fade out
         if fade.fadeOutDuration > .zero {
             let fadeOutStart = CMTimeSubtract(timeRange.end, fade.fadeOutDuration)
             volumeRamps.append((fadeOutStart, 1.0))
             volumeRamps.append((timeRange.end, 0.0))
         }
 
-        // 应用音量渐变
+        // Apply volume ramps
         for i in 0..<volumeRamps.count - 1 {
             let start = volumeRamps[i]
             let end = volumeRamps[i + 1]
@@ -156,33 +156,33 @@ class AudioEffectProcessor {
     }
 }
 
-/// 音频均衡器
+/// Audio equalizer
 struct AudioEqualizer: Equatable {
-    /// 预设类型
+    /// Preset type
     enum Preset: String, CaseIterable {
-        case flat = "平坦"
-        case bass = "低音增强"
-        case treble = "高音增强"
-        case vocal = "人声增强"
-        case acoustic = "原声"
-        case electronic = "电子"
-        case rock = "摇滚"
-        case pop = "流行"
-        case jazz = "爵士"
-        case classical = "古典"
-        case custom = "自定义"
+        case flat = "Flat"
+        case bass = "Bass Boost"
+        case treble = "Treble Boost"
+        case vocal = "Vocal Enhancement"
+        case acoustic = "Acoustic"
+        case electronic = "Electronic"
+        case rock = "Rock"
+        case pop = "Pop"
+        case jazz = "Jazz"
+        case classical = "Classical"
+        case custom = "Custom"
     }
 
-    /// 频段增益 (-12dB to +12dB)
+    /// Band gains (-12dB to +12dB)
     var bands: [Float] = Array(repeating: 0, count: 10)
 
-    /// 频段频率
+    /// Band frequencies
     static let frequencies: [String] = [
         "32Hz", "64Hz", "125Hz", "250Hz", "500Hz",
         "1kHz", "2kHz", "4kHz", "8kHz", "16kHz"
     ]
 
-    /// 应用预设
+    /// Apply preset
     mutating func applyPreset(_ preset: Preset) {
         switch preset {
         case .flat:
@@ -211,18 +211,18 @@ struct AudioEqualizer: Equatable {
     }
 }
 
-/// 音频变声效果
+/// Audio voice changer effect
 struct VoiceChanger: Equatable {
-    /// 变声类型
+    /// Voice type
     enum VoiceType: String, CaseIterable {
-        case normal = "正常"
-        case male = "男声"
-        case female = "女声"
-        case child = "童声"
-        case robot = "机器人"
-        case monster = "怪物"
-        case chipmunk = "花栗鼠"
-        case deep = "低沉"
+        case normal = "Normal"
+        case male = "Male"
+        case female = "Female"
+        case child = "Child"
+        case robot = "Robot"
+        case monster = "Monster"
+        case chipmunk = "Chipmunk"
+        case deep = "Deep"
 
         var pitchShift: Float {
             switch self {
@@ -243,29 +243,29 @@ struct VoiceChanger: Equatable {
     var formantShift: Float = 0
 }
 
-/// 音频降噪
+/// Audio noise reduction
 struct NoiseReduction: Equatable {
-    /// 降噪强度 (0-100)
+    /// Noise reduction strength (0-100)
     var strength: Float = 50
 
-    /// 降噪类型
+    /// Noise type
     enum NoiseType: String, CaseIterable {
-        case auto = "自动"
-        case wind = "风噪"
-        case hum = "电流声"
-        case hiss = "嘶嘶声"
-        case background = "背景噪音"
+        case auto = "Auto"
+        case wind = "Wind Noise"
+        case hum = "Electrical Hum"
+        case hiss = "Hiss"
+        case background = "Background Noise"
     }
 
     var noiseType: NoiseType = .auto
 }
 
-// MARK: - 音频分离
+// MARK: - Audio Separation
 
-/// 音频分离器
+/// Audio separator
 class AudioSeparator {
 
-    /// 从视频中分离音频
+    /// Extract audio from video
     static func separateAudio(
         from videoAsset: AVAsset,
         outputURL: URL
@@ -291,7 +291,7 @@ class AudioSeparator {
             at: .zero
         )
 
-        // 导出为音频文件
+        // Export as audio file
         guard let exportSession = AVAssetExportSession(
             asset: composition,
             presetName: AVAssetExportPresetAppleM4A
@@ -309,7 +309,7 @@ class AudioSeparator {
         }
     }
 
-    /// 将音频合并到视频
+    /// Merge audio with video
     static func mergeAudio(
         videoAsset: AVAsset,
         audioAsset: AVAsset,
@@ -319,7 +319,7 @@ class AudioSeparator {
     ) async throws {
         let composition = AVMutableComposition()
 
-        // 添加视频轨道
+        // Add video track
         if let videoTrack = composition.addMutableTrack(
             withMediaType: .video,
             preferredTrackID: kCMPersistentTrackID_Invalid
@@ -335,7 +335,7 @@ class AudioSeparator {
             }
         }
 
-        // 添加原始音频轨道
+        // Add original audio track
         let audioMix = AVMutableAudioMix()
         var inputParameters: [AVMutableAudioMixInputParameters] = []
 
@@ -358,7 +358,7 @@ class AudioSeparator {
             }
         }
 
-        // 添加新音频轨道
+        // Add new audio track
         if let newAudioTrack = composition.addMutableTrack(
             withMediaType: .audio,
             preferredTrackID: kCMPersistentTrackID_Invalid
@@ -383,7 +383,7 @@ class AudioSeparator {
 
         audioMix.inputParameters = inputParameters
 
-        // 导出
+        // Export
         guard let exportSession = AVAssetExportSession(
             asset: composition,
             presetName: AVAssetExportPresetHighestQuality
@@ -403,7 +403,7 @@ class AudioSeparator {
     }
 }
 
-/// 音频错误
+/// Audio error
 enum AudioError: LocalizedError {
     case trackCreationFailed
     case noAudioTrack
@@ -411,16 +411,16 @@ enum AudioError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .trackCreationFailed: return "创建音轨失败"
-        case .noAudioTrack: return "没有找到音轨"
-        case .exportFailed: return "导出失败"
+        case .trackCreationFailed: return "Failed to create audio track"
+        case .noAudioTrack: return "No audio track found"
+        case .exportFailed: return "Export failed"
         }
     }
 }
 
-// MARK: - 音量关键帧
+// MARK: - Volume Keyframes
 
-/// 音量关键帧
+/// Volume keyframe
 struct VolumeKeyframe: Identifiable, Equatable {
     let id: UUID
     var time: CMTime
@@ -440,32 +440,32 @@ struct VolumeKeyframe: Identifiable, Equatable {
     }
 }
 
-/// 音量关键帧管理器
+/// Volume keyframe manager
 class VolumeKeyframeManager {
     var keyframes: [VolumeKeyframe] = []
 
-    /// 添加关键帧
+    /// Add keyframe
     func addKeyframe(at time: CMTime, volume: Float) {
         let keyframe = VolumeKeyframe(time: time, volume: volume)
         keyframes.append(keyframe)
         sortKeyframes()
     }
 
-    /// 删除关键帧
+    /// Remove keyframe
     func removeKeyframe(id: UUID) {
         keyframes.removeAll { $0.id == id }
     }
 
-    /// 排序关键帧
+    /// Sort keyframes
     func sortKeyframes() {
         keyframes.sort { CMTimeCompare($0.time, $1.time) < 0 }
     }
 
-    /// 获取指定时间的音量
+    /// Get volume at specified time
     func volume(at time: CMTime) -> Float {
         guard !keyframes.isEmpty else { return 1.0 }
 
-        // 查找前后关键帧
+        // Find previous and next keyframes
         var prevKeyframe: VolumeKeyframe?
         var nextKeyframe: VolumeKeyframe?
 
@@ -478,17 +478,17 @@ class VolumeKeyframeManager {
             }
         }
 
-        // 如果在所有关键帧之前
+        // If before all keyframes
         if prevKeyframe == nil {
             return nextKeyframe?.volume ?? 1.0
         }
 
-        // 如果在所有关键帧之后
+        // If after all keyframes
         if nextKeyframe == nil {
             return prevKeyframe?.volume ?? 1.0
         }
 
-        // 插值
+        // Interpolate
         guard let prev = prevKeyframe, let next = nextKeyframe else {
             return 1.0
         }
@@ -501,7 +501,7 @@ class VolumeKeyframeManager {
         return prev.volume + (next.volume - prev.volume) * curvedProgress
     }
 
-    /// 生成 AVAudioMix
+    /// Generate AVAudioMix
     func generateAudioMix(for track: AVMutableCompositionTrack) -> AVMutableAudioMix {
         let audioMix = AVMutableAudioMix()
         let parameters = AVMutableAudioMixInputParameters(track: track)

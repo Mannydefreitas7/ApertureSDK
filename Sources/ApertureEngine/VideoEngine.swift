@@ -2,43 +2,43 @@ import Foundation
 import AVFoundation
 import Combine
 
-/// 视频引擎 - 核心播放和编辑控制
+/// Video Engine - Core playback and editing control
 @MainActor
 class VideoEngine: ObservableObject {
 
-    /// 当前项目
+    /// Current project
     @Published var project: Project
 
-    /// 播放器
+    /// Player
     @Published private(set) var player: AVPlayer?
 
-    /// 当前播放时间
+    /// Current playback time
     @Published var currentTime: CMTime = .zero
 
-    /// 是否正在播放
+    /// Whether currently playing
     @Published var isPlaying: Bool = false
 
-    /// 当前选中的片段
+    /// Currently selected clip
     @Published var selectedClipId: UUID?
 
-    /// 当前选中的轨道
+    /// Currently selected track
     @Published var selectedTrackId: UUID?
 
-    /// 时间线缩放比例
+    /// Timeline zoom scale
     @Published var timelineScale: Double = 1.0
 
     private var playerItem: AVPlayerItem?
     private var timeObserver: Any?
     private var cancellables = Set<AnyCancellable>()
 
-    /// 导出器
+    /// Exporter
     let exporter = VideoExporter()
 
     init(project: Project = Project()) {
         self.project = project
     }
 
-    /// 清理资源
+    /// Clean up resources
     func cleanup() {
         if let observer = timeObserver, let player = player {
             player.removeTimeObserver(observer)
@@ -49,7 +49,7 @@ class VideoEngine: ObservableObject {
 
     // MARK: - 播放控制
 
-    /// 准备播放
+    /// Prepare playback
     func preparePlayback() async throws {
         let result = try await CompositionBuilder.buildComposition(from: project)
         let item = result.makePlayerItem()
@@ -64,19 +64,19 @@ class VideoEngine: ObservableObject {
         }
     }
 
-    /// 播放
+    /// Play
     func play() {
         player?.play()
         isPlaying = true
     }
 
-    /// 暂停
+    /// Pause
     func pause() {
         player?.pause()
         isPlaying = false
     }
 
-    /// 切换播放/暂停
+    /// Toggle play/pause
     func togglePlayback() {
         if isPlaying {
             pause()
@@ -85,39 +85,39 @@ class VideoEngine: ObservableObject {
         }
     }
 
-    /// 跳转到指定时间
+    /// Seek to specified time
     func seek(to time: CMTime) {
         player?.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero)
         currentTime = time
     }
 
-    /// 跳转到开头
+    /// Seek to beginning
     func seekToBeginning() {
         seek(to: .zero)
     }
 
-    /// 跳转到结尾
+    /// Seek to end
     func seekToEnd() {
         seek(to: project.duration)
     }
 
-    /// 前进指定时间
+    /// Step forward by specified time
     func stepForward(seconds: Double = 1.0) {
         let newTime = CMTimeAdd(currentTime, CMTime(seconds: seconds, preferredTimescale: 600))
         let clampedTime = CMTimeMinimum(newTime, project.duration)
         seek(to: clampedTime)
     }
 
-    /// 后退指定时间
+    /// Step backward by specified time
     func stepBackward(seconds: Double = 1.0) {
         let newTime = CMTimeSubtract(currentTime, CMTime(seconds: seconds, preferredTimescale: 600))
         let clampedTime = CMTimeMaximum(newTime, .zero)
         seek(to: clampedTime)
     }
 
-    /// 设置时间观察器
+    /// Setup time observer
     private func setupTimeObserver() {
-        let interval = CMTime(seconds: 0.03, preferredTimescale: 600) // ~30fps 更新
+        let interval = CMTime(seconds: 0.03, preferredTimescale: 600) // ~30fps update
 
         timeObserver = player?.addPeriodicTimeObserver(
             forInterval: interval,
@@ -131,7 +131,7 @@ class VideoEngine: ObservableObject {
 
     // MARK: - 编辑操作
 
-    /// 导入媒体到指定轨道
+    /// Import media to specified track
     func importMedia(from urls: [URL], to trackId: UUID) async throws {
         let clips = try await VideoImporter.importMediaFiles(from: urls)
 
@@ -146,11 +146,11 @@ class VideoEngine: ObservableObject {
 
         project.updateTrack(track)
 
-        // 刷新播放
+        // Refresh playback
         try await preparePlayback()
     }
 
-    /// 添加片段到轨道
+    /// Add clip to track
     func addClip(_ clip: Clip, to trackId: UUID) {
         guard var track = project.tracks.first(where: { $0.id == trackId }) else {
             return
@@ -163,7 +163,7 @@ class VideoEngine: ObservableObject {
         project.updateTrack(track)
     }
 
-    /// 删除片段
+    /// Delete clip
     func deleteClip(id: UUID) {
         guard var track = project.track(containingClip: id) else {
             return
@@ -181,7 +181,7 @@ class VideoEngine: ObservableObject {
         }
     }
 
-    /// 分割片段
+    /// Split clip
     func splitClip(id: UUID, at time: CMTime) {
         guard var track = project.track(containingClip: id),
               let clipIndex = track.clips.firstIndex(where: { $0.id == id }),
@@ -199,13 +199,13 @@ class VideoEngine: ObservableObject {
         }
     }
 
-    /// 在当前时间分割选中的片段
+    /// Split selected clip at current time
     func splitSelectedClip() {
         guard let clipId = selectedClipId else { return }
         splitClip(id: clipId, at: currentTime)
     }
 
-    /// 移动片段
+    /// Move clip
     func moveClip(id: UUID, to newStartTime: CMTime, trackId: UUID? = nil) {
         guard var sourceTrack = project.track(containingClip: id),
               let clipIndex = sourceTrack.clips.firstIndex(where: { $0.id == id }) else {
@@ -216,7 +216,7 @@ class VideoEngine: ObservableObject {
         clip.startTime = newStartTime
 
         if let targetTrackId = trackId, targetTrackId != sourceTrack.id {
-            // 移动到其他轨道
+            // Move to other track
             sourceTrack.removeClip(id: id)
             project.updateTrack(sourceTrack)
 
@@ -225,7 +225,7 @@ class VideoEngine: ObservableObject {
                 project.updateTrack(targetTrack)
             }
         } else {
-            // 在同一轨道移动
+            // Move within same track
             sourceTrack.clips[clipIndex] = clip
             sourceTrack.sortClips()
             project.updateTrack(sourceTrack)
@@ -238,12 +238,12 @@ class VideoEngine: ObservableObject {
 
     // MARK: - 轨道操作
 
-    /// 添加轨道
+    /// Add track
     func addTrack(type: TrackType) {
         project.addTrack(type: type)
     }
 
-    /// 删除轨道
+    /// Delete track
     func deleteTrack(id: UUID) {
         project.removeTrack(id: id)
 
@@ -256,7 +256,7 @@ class VideoEngine: ObservableObject {
         }
     }
 
-    /// 切换轨道静音
+    /// Toggle track mute
     func toggleTrackMute(id: UUID) {
         guard let index = project.tracks.firstIndex(where: { $0.id == id }) else {
             return
@@ -269,7 +269,7 @@ class VideoEngine: ObservableObject {
         }
     }
 
-    /// 切换轨道可见性
+    /// Toggle track visibility
     func toggleTrackVisibility(id: UUID) {
         guard let index = project.tracks.firstIndex(where: { $0.id == id }) else {
             return
@@ -284,7 +284,7 @@ class VideoEngine: ObservableObject {
 
     // MARK: - 导出
 
-    /// 导出视频
+    /// Export video
     func exportVideo(to url: URL, preset: VideoExporter.ExportPreset = .highest) async throws {
         let config = VideoExporter.ExportConfiguration(preset: preset)
         try await exporter.export(project: project, to: url, configuration: config)

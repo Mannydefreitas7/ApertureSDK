@@ -70,14 +70,14 @@ struct Title3DAnimation: Codable {
 }
 
 enum Title3DAnimationType: String, Codable, CaseIterable {
-    case flyIn = "飞入"
-    case rotateIn = "旋转进入"
-    case scaleUp = "放大进入"
-    case explode = "爆炸"
-    case assemble = "组装"
-    case typewriter = "打字机"
-    case wave = "波浪"
-    case bounce = "弹跳"
+    case flyIn = "Fly In"
+    case rotateIn = "Rotate In"
+    case scaleUp = "Scale Up"
+    case explode = "Explode"
+    case assemble = "Assemble"
+    case typewriter = "Typewriter"
+    case wave = "Wave"
+    case bounce = "Bounce"
 }
 
 class Title3DRenderer: ObservableObject {
@@ -87,28 +87,28 @@ class Title3DRenderer: ObservableObject {
 
     private init() {}
 
-    // 渲染3D标题到图像
+    // Render 3D title to image
     func render(_ title: Title3D, size: CGSize, time: Double) -> CIImage? {
-        // 使用 SceneKit 或 Metal 渲染3D文字
-        // 简化实现：返回2D模拟效果
+        // Use SceneKit or Metal to render 3D text
+        // Simplified implementation: return 2D simulation effect
 
-        // 创建文字图像
+        // Create text image
         let textImage = createTextImage(title, size: size)
 
-        // 应用3D变换效果
+        // Apply 3D transform effects
         var result = textImage
 
-        // 透视变换
+        // Perspective transform
         result = applyPerspective(result, rotation: title.rotation)
 
-        // 添加阴影和深度效果
+        // Add shadow and depth effects
         result = addDepthEffect(result, depth: title.depth, material: title.materialType)
 
         return result
     }
 
     private func createTextImage(_ title: Title3D, size: CGSize) -> CIImage {
-        // 创建文字渲染
+        // Create text rendering
         #if canImport(AppKit)
         let nsImage = NSImage(size: size)
         nsImage.lockFocus()
@@ -171,7 +171,7 @@ class Title3DRenderer: ObservableObject {
         let extent = image.extent
         let rotationRadians = rotation * Float.pi / 180
 
-        // 简化的透视变换
+        // Simplified perspective transform
         let topLeft = CGPoint(x: extent.minX, y: extent.minY)
         let topRight = CGPoint(x: extent.maxX, y: extent.minY)
         let bottomLeft = CGPoint(x: extent.minX, y: extent.maxY)
@@ -189,7 +189,7 @@ class Title3DRenderer: ObservableObject {
     private func addDepthEffect(_ image: CIImage, depth: CGFloat, material: Material3DType) -> CIImage {
         var result = image
 
-        // 添加阴影
+        // Add shadow
         if let shadow = CIFilter(name: "CIDropShadow") {
             shadow.setValue(result, forKey: kCIInputImageKey)
             shadow.setValue(depth / 2, forKey: "inputRadius")
@@ -199,10 +199,10 @@ class Title3DRenderer: ObservableObject {
             }
         }
 
-        // 根据材质添加效果
+        // Add effects based on material
         switch material {
         case .metallic, .chrome, .gold:
-            // 添加高光
+            // Add highlights
             if let bloom = CIFilter(name: "CIBloom") {
                 bloom.setValue(result, forKey: kCIInputImageKey)
                 bloom.setValue(5.0, forKey: kCIInputRadiusKey)
@@ -212,7 +212,7 @@ class Title3DRenderer: ObservableObject {
                 }
             }
         case .neon:
-            // 添加发光效果
+            // Add glow effect
             if let glow = CIFilter(name: "CIGloom") {
                 glow.setValue(result, forKey: kCIInputImageKey)
                 glow.setValue(10.0, forKey: kCIInputRadiusKey)
@@ -222,7 +222,7 @@ class Title3DRenderer: ObservableObject {
                 }
             }
         case .glass:
-            // 添加透明效果
+            // Add transparency effect
             if let opacity = CIFilter(name: "CIColorMatrix") {
                 opacity.setValue(result, forKey: kCIInputImageKey)
                 opacity.setValue(CIVector(x: 0, y: 0, z: 0, w: 0.7), forKey: "inputAVector")
@@ -238,23 +238,23 @@ class Title3DRenderer: ObservableObject {
     }
 }
 
-// MARK: - 光效系统
+// MARK: - Light Effects System
 
 enum LightEffectType: String, CaseIterable, Codable {
-    case lensFlare = "镜头光晕"
-    case sunbeams = "阳光射线"
-    case bokeh = "光斑"
-    case volumetricLight = "体积光"
-    case glow = "辉光"
-    case sparkle = "闪烁"
-    case lightLeak = "漏光"
-    case anamorphicFlare = "变形光晕"
+    case lensFlare = "Lens Flare"
+    case sunbeams = "Sunbeams"
+    case bokeh = "Bokeh"
+    case volumetricLight = "Volumetric Light"
+    case glow = "Glow"
+    case sparkle = "Sparkle"
+    case lightLeak = "Light Leak"
+    case anamorphicFlare = "Anamorphic Flare"
 }
 
 struct LightEffect: Identifiable, Codable {
     let id: UUID
     var type: LightEffectType
-    var position: CGPoint  // 归一化坐标
+    var position: CGPoint  // Normalized coordinates
     var intensity: Float
     var color: CodableColor
     var size: Float
@@ -292,7 +292,7 @@ class LightEffectRenderer: ObservableObject {
 
     private init() {}
 
-    // 应用光效
+    // Apply light effect
     func apply(_ effect: LightEffect, to image: CIImage, time: Double = 0) -> CIImage {
         let size = image.extent.size
         let position = CGPoint(
@@ -387,7 +387,7 @@ class LightEffectRenderer: ObservableObject {
     }
 
     private func applyLightLeak(to image: CIImage, intensity: Float, color: CodableColor) -> CIImage {
-        // 创建渐变光晕
+        // Create gradient halo
         guard let gradient = CIFilter(name: "CIRadialGradient") else {
             return image
         }
@@ -412,15 +412,15 @@ class LightEffectRenderer: ObservableObject {
     }
 }
 
-// MARK: - 调色轮
+// MARK: - Color Wheel
 
 struct ColorWheelSettings: Codable {
-    // 三向调色轮
+    // Three-way color wheel
     var shadows: ColorWheelValue = ColorWheelValue()
     var midtones: ColorWheelValue = ColorWheelValue()
     var highlights: ColorWheelValue = ColorWheelValue()
 
-    // 整体调整
+    // Overall adjustments
     var temperature: Float = 0  // -100 to 100
     var tint: Float = 0  // -100 to 100
     var vibrance: Float = 0  // -100 to 100
@@ -440,17 +440,17 @@ class ColorGrading: ObservableObject {
 
     private init() {}
 
-    // 应用调色
+    // Apply color grading
     func apply(to image: CIImage) -> CIImage {
         var result = image
 
-        // 1. 应用色温和色调
+        // 1. Apply temperature and tint
         result = applyTemperatureAndTint(result)
 
-        // 2. 分离阴影/中间调/高光并分别调色
+        // 2. Separate shadows/midtones/highlights and apply color grading
         result = applySplitToning(result)
 
-        // 3. 应用饱和度和自然饱和度
+        // 3. Apply saturation and vibrance
         result = applySaturation(result)
 
         return result
@@ -461,8 +461,8 @@ class ColorGrading: ObservableObject {
             return image
         }
 
-        // 色温：从蓝色（冷）到黄色（暖）
-        let neutral = CIVector(x: 6500, y: 0)  // 中性
+        // Temperature: from blue (cold) to yellow (warm)
+        let neutral = CIVector(x: 6500, y: 0)  // Neutral
         let targetTemp = 6500 + CGFloat(settings.temperature) * 50
         let targetTint = CGFloat(settings.tint)
 
@@ -474,8 +474,8 @@ class ColorGrading: ObservableObject {
     }
 
     private func applySplitToning(_ image: CIImage) -> CIImage {
-        // 分离调色需要复杂的遮罩操作
-        // 简化实现：使用整体色相偏移
+        // Split toning requires complex masking operations
+        // Simplified implementation: use overall hue shift
 
         guard let filter = CIFilter(name: "CIHueAdjust") else {
             return image
@@ -496,24 +496,24 @@ class ColorGrading: ObservableObject {
         filter.setValue(image, forKey: kCIInputImageKey)
         filter.setValue(1.0 + settings.saturation / 100, forKey: kCIInputSaturationKey)
 
-        // 自然饱和度需要更复杂的实现
-        // 它只增加低饱和度区域的饱和度
+        // Vibrance requires more complex implementation
+        // It only increases saturation in low-saturation areas
 
         return filter.outputImage ?? image
     }
 }
 
-// MARK: - 故障艺术效果
+// MARK: - Glitch Art Effects
 
 enum GlitchType: String, CaseIterable, Codable {
-    case rgbSplit = "RGB分离"
-    case scanlines = "扫描线"
-    case noise = "噪波"
-    case displacement = "位移"
-    case pixelSort = "像素排序"
-    case datamosh = "数据损坏"
+    case rgbSplit = "RGB Split"
+    case scanlines = "Scanlines"
+    case noise = "Noise"
+    case displacement = "Displacement"
+    case pixelSort = "Pixel Sort"
+    case datamosh = "Datamosh"
     case vhs = "VHS"
-    case digital = "数字故障"
+    case digital = "Digital Glitch"
 }
 
 struct GlitchEffect: Codable {
@@ -528,7 +528,7 @@ class GlitchEffectRenderer: ObservableObject {
 
     private init() {}
 
-    // 应用故障效果
+    // Apply glitch effect
     func apply(_ effect: GlitchEffect, to image: CIImage, time: Double) -> CIImage {
         switch effect.type {
         case .rgbSplit:
@@ -551,26 +551,26 @@ class GlitchEffectRenderer: ObservableObject {
     private func applyRGBSplit(to image: CIImage, intensity: Float, time: Double) -> CIImage {
         let offset = CGFloat(intensity) * 10 * CGFloat(sin(time * 10))
 
-        // 分离RGB通道
+        // Separate RGB channels
         guard let rFilter = CIFilter(name: "CIColorMatrix"),
               let gFilter = CIFilter(name: "CIColorMatrix"),
               let bFilter = CIFilter(name: "CIColorMatrix") else {
             return image
         }
 
-        // 红色通道
+        // Red channel
         rFilter.setValue(image.transformed(by: CGAffineTransform(translationX: offset, y: 0)), forKey: kCIInputImageKey)
         rFilter.setValue(CIVector(x: 1, y: 0, z: 0, w: 0), forKey: "inputRVector")
         rFilter.setValue(CIVector(x: 0, y: 0, z: 0, w: 0), forKey: "inputGVector")
         rFilter.setValue(CIVector(x: 0, y: 0, z: 0, w: 0), forKey: "inputBVector")
 
-        // 绿色通道
+        // Green channel
         gFilter.setValue(image, forKey: kCIInputImageKey)
         gFilter.setValue(CIVector(x: 0, y: 0, z: 0, w: 0), forKey: "inputRVector")
         gFilter.setValue(CIVector(x: 0, y: 1, z: 0, w: 0), forKey: "inputGVector")
         gFilter.setValue(CIVector(x: 0, y: 0, z: 0, w: 0), forKey: "inputBVector")
 
-        // 蓝色通道
+        // Blue channel
         bFilter.setValue(image.transformed(by: CGAffineTransform(translationX: -offset, y: 0)), forKey: kCIInputImageKey)
         bFilter.setValue(CIVector(x: 0, y: 0, z: 0, w: 0), forKey: "inputRVector")
         bFilter.setValue(CIVector(x: 0, y: 0, z: 0, w: 0), forKey: "inputGVector")
@@ -624,7 +624,7 @@ class GlitchEffectRenderer: ObservableObject {
         guard var noiseImage = noise.outputImage else { return image }
         noiseImage = noiseImage.cropped(to: image.extent)
 
-        // 调整噪声不透明度
+        // Adjust noise opacity
         if let opacity = CIFilter(name: "CIColorMatrix") {
             opacity.setValue(noiseImage, forKey: kCIInputImageKey)
             opacity.setValue(CIVector(x: 0, y: 0, z: 0, w: CGFloat(intensity * 0.3)), forKey: "inputAVector")
@@ -660,10 +660,10 @@ class GlitchEffectRenderer: ObservableObject {
         // 2. 添加扫描线
         result = applyScanlines(to: result, intensity: intensity)
 
-        // 3. 添加噪声
+        // 3. Add noise
         result = applyNoise(to: result, intensity: intensity * 0.5, time: time)
 
-        // 4. RGB分离
+        // 4. RGB split
         result = applyRGBSplit(to: result, intensity: intensity * 0.3, time: time)
 
         return result
@@ -672,7 +672,7 @@ class GlitchEffectRenderer: ObservableObject {
     private func applyDigitalGlitch(to image: CIImage, intensity: Float, time: Double) -> CIImage {
         var result = image
 
-        // 随机块状故障
+        // Random block glitches
         let blockCount = Int(intensity * 10)
 
         for _ in 0..<blockCount {
@@ -697,14 +697,14 @@ class GlitchEffectRenderer: ObservableObject {
     }
 }
 
-// MARK: - 分身效果
+// MARK: - Clone Effects
 
 struct CloneEffect: Codable {
     var cloneCount: Int = 3
-    var spacing: CGFloat = 0.1  // 间距
+    var spacing: CGFloat = 0.1  // spacing
     var opacity: Float = 0.7
-    var delay: Double = 0.5  // 延迟时间
-    var scaleDecay: Float = 0.9  // 缩放衰减
+    var delay: Double = 0.5  // delay time
+    var scaleDecay: Float = 0.9  // scale decay
 }
 
 class CloneEffectRenderer {
@@ -715,7 +715,7 @@ class CloneEffectRenderer {
 
     private init() {}
 
-    // 添加帧到缓冲区
+    // Add frame to buffer
     func addFrame(_ frame: CIImage) {
         frameBuffer.append(frame)
         if frameBuffer.count > maxBufferSize {
@@ -723,7 +723,7 @@ class CloneEffectRenderer {
         }
     }
 
-    // 渲染分身效果
+    // Render clone effect
     func render(currentFrame: CIImage, settings: CloneEffect, frameRate: Double) -> CIImage {
         var result = currentFrame
 
@@ -735,7 +735,7 @@ class CloneEffectRenderer {
             if bufferIndex >= 0 && bufferIndex < frameBuffer.count {
                 var cloneFrame = frameBuffer[bufferIndex]
 
-                // 应用不透明度
+                // Apply opacity
                 let opacity = pow(settings.opacity, Float(i))
                 if let opacityFilter = CIFilter(name: "CIColorMatrix") {
                     opacityFilter.setValue(cloneFrame, forKey: kCIInputImageKey)
@@ -745,11 +745,11 @@ class CloneEffectRenderer {
                     }
                 }
 
-                // 应用缩放
+                // Apply scaling
                 let scale = pow(CGFloat(settings.scaleDecay), CGFloat(i))
                 cloneFrame = cloneFrame.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
 
-                // 合成
+                // Composite
                 if let blend = CIFilter(name: "CISourceOverCompositing") {
                     blend.setValue(result, forKey: kCIInputImageKey)
                     blend.setValue(cloneFrame, forKey: kCIInputBackgroundImageKey)
@@ -768,12 +768,12 @@ class CloneEffectRenderer {
     }
 }
 
-// MARK: - 时间冻结（子弹时间）
+// MARK: - Time Freeze (Bullet Time)
 
 struct BulletTimeEffect: Codable {
     var freezeTime: CMTime
     var duration: Double = 2.0
-    var rotationAngle: Float = 360  // 旋转角度
+    var rotationAngle: Float = 360  // rotation angle
     var zoomFactor: Float = 1.5
 }
 
@@ -782,7 +782,7 @@ class BulletTimeRenderer {
 
     private init() {}
 
-    // 生成子弹时间效果
+    // Generate bullet time effect
     func render(
         asset: AVAsset,
         effect: BulletTimeEffect,
@@ -791,7 +791,7 @@ class BulletTimeRenderer {
         let outputURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("bullet_time_\(UUID().uuidString).mp4")
 
-        // 1. 提取冻结帧
+        // 1. Extract freeze frame
         guard let track = asset.tracks(withMediaType: .video).first else {
             throw EffectError.noVideoTrack
         }
@@ -803,19 +803,19 @@ class BulletTimeRenderer {
             throw EffectError.frameExtractionFailed
         }
 
-        // 2. 生成旋转/缩放动画帧
+        // 2. Generate rotation/zoom animation frames
         let frameRate: Double = 30
         let totalFrames = Int(effect.duration * frameRate)
 
         for frameIndex in 0..<totalFrames {
             let t = Double(frameIndex) / Double(totalFrames)
 
-            // 计算当前旋转角度和缩放
+            // Calculate current rotation angle and zoom
             let currentRotation = CGFloat(effect.rotationAngle) * CGFloat(t) * .pi / 180
             let currentZoom = 1.0 + (CGFloat(effect.zoomFactor) - 1.0) * CGFloat(sin(t * .pi))
 
-            // 应用变换
-            // 写入帧
+            // Apply transform
+            // Write frame
 
             progress(t)
         }
@@ -824,7 +824,7 @@ class BulletTimeRenderer {
     }
 }
 
-// MARK: - 缩放转场
+// MARK: - Zoom Transition
 
 struct ZoomTransitionEffect: Codable {
     var zoomPoint: CGPoint = CGPoint(x: 0.5, y: 0.5)
@@ -838,7 +838,7 @@ class ZoomTransitionRenderer {
 
     private init() {}
 
-    // 渲染缩放转场
+    // Render zoom transition
     func render(
         from clip1: Clip,
         to clip2: Clip,
@@ -847,14 +847,14 @@ class ZoomTransitionRenderer {
         let outputURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("zoom_transition_\(UUID().uuidString).mp4")
 
-        // 1. 从第一个片段放大到黑屏
-        // 2. 从第二个片段缩小出来
+        // 1. Zoom from first clip to black screen
+        // 2. Zoom out from second clip
 
         return outputURL
     }
 }
 
-// MARK: - 老电影效果
+// MARK: - Vintage Film Effect
 
 struct VintageFilmEffect: Codable {
     var grain: Float = 0.3
@@ -874,7 +874,7 @@ class VintageFilmRenderer {
     func apply(_ effect: VintageFilmEffect, to image: CIImage, time: Double) -> CIImage {
         var result = image
 
-        // 1. 褪色效果
+        // 1. Color fade effect
         if effect.colorFade > 0 {
             if let sepia = CIFilter(name: "CISepiaTone") {
                 sepia.setValue(result, forKey: kCIInputImageKey)
@@ -885,7 +885,7 @@ class VintageFilmRenderer {
             }
         }
 
-        // 2. 胶片颗粒
+        // 2. Film grain
         if effect.grain > 0 {
             result = GlitchEffectRenderer.shared.apply(
                 GlitchEffect(type: .noise, intensity: effect.grain),
@@ -894,7 +894,7 @@ class VintageFilmRenderer {
             )
         }
 
-        // 3. 暗角
+        // 3. Vignette
         if effect.vignette > 0 {
             if let vignette = CIFilter(name: "CIVignette") {
                 vignette.setValue(result, forKey: kCIInputImageKey)
@@ -906,7 +906,7 @@ class VintageFilmRenderer {
             }
         }
 
-        // 4. 闪烁效果
+        // 4. Flickering effect
         if effect.flickering > 0 {
             let flicker = 1.0 - effect.flickering * Float.random(in: 0...0.3)
             if let brightness = CIFilter(name: "CIColorControls") {
@@ -922,7 +922,7 @@ class VintageFilmRenderer {
     }
 }
 
-// MARK: - 错误类型
+// MARK: - Error Types
 
 enum EffectError: Error {
     case noVideoTrack

@@ -3,17 +3,17 @@ import AVFoundation
 import Accelerate
 import CoreMedia
 
-// MARK: - 3. 音频增强模块
+// MARK: - 3. Audio Enhancement Module
 
-// MARK: - 音频可视化
+// MARK: - Audio Visualization
 
 enum VisualizationType: String, CaseIterable {
-    case waveform = "波形"
-    case spectrum = "频谱"
-    case spectrogram = "声谱图"
-    case bars = "柱状"
-    case circular = "环形"
-    case particles = "粒子"
+    case waveform = "Waveform"
+    case spectrum = "Spectrum"
+    case spectrogram = "Spectrogram"
+    case bars = "Bars"
+    case circular = "Circular"
+    case particles = "Particles"
 }
 
 struct AudioVisualization {
@@ -46,7 +46,7 @@ class AudioVisualizer: ObservableObject {
         }
     }
 
-    // 生成波形数据
+    // Generate waveform data
     func generateWaveform(from asset: AVAsset, samplesPerSecond: Int = 100) async throws -> [Float] {
         isAnalyzing = true
         defer { isAnalyzing = false }
@@ -91,7 +91,7 @@ class AudioVisualizer: ObservableObject {
                         let window = Array(buffer.prefix(samplesPerWindow))
                         buffer.removeFirst(samplesPerWindow)
 
-                        // 计算 RMS
+                        // Calculate RMS
                         var floatWindow = window.map { Float($0) / Float(Int16.max) }
                         var rms: Float = 0
                         vDSP_rmsqv(&floatWindow, 1, &rms, vDSP_Length(floatWindow.count))
@@ -106,7 +106,7 @@ class AudioVisualizer: ObservableObject {
         return samples
     }
 
-    // 实时频谱分析
+    // Real-time spectrum analysis
     func analyzeSpectrum(samples: [Float]) -> [Float] {
         guard samples.count >= fftLength, let setup = fftSetup else {
             return []
@@ -117,27 +117,27 @@ class AudioVisualizer: ObservableObject {
         var realOutput = [Float](repeating: 0, count: fftLength)
         var imagOutput = [Float](repeating: 0, count: fftLength)
 
-        // 应用汉宁窗
+        // Apply Hanning window
         var window = [Float](repeating: 0, count: fftLength)
         vDSP_hann_window(&window, vDSP_Length(fftLength), Int32(vDSP_HANN_NORM))
         var windowedInput = [Float](repeating: 0, count: fftLength)
         vDSP_vmul(&realInput, 1, &window, 1, &windowedInput, 1, vDSP_Length(fftLength))
         realInput = windowedInput
 
-        // 执行 FFT
+        // Execute FFT
         vDSP_DFT_Execute(setup, &realInput, &imagInput, &realOutput, &imagOutput)
 
-        // 计算幅度
+        // Calculate magnitude
         var magnitudes = [Float](repeating: 0, count: fftLength / 2)
         var splitComplex = DSPSplitComplex(realp: &realOutput, imagp: &imagOutput)
         vDSP_zvabs(&splitComplex, 1, &magnitudes, 1, vDSP_Length(fftLength / 2))
 
-        // 转换为 dB
+        // Convert to dB
         var one: Float = 1
         var dbMagnitudes = [Float](repeating: 0, count: fftLength / 2)
         vDSP_vdbcon(&magnitudes, 1, &one, &dbMagnitudes, 1, vDSP_Length(fftLength / 2), 0)
 
-        // 归一化
+        // Normalize
         var minVal: Float = 0
         var maxVal: Float = 0
         vDSP_minv(&dbMagnitudes, 1, &minVal, vDSP_Length(dbMagnitudes.count))
@@ -156,7 +156,7 @@ class AudioVisualizer: ObservableObject {
         return magnitudes
     }
 
-    // 生成频谱动画数据
+    // Generate spectrum animation data
     func generateSpectrumAnimation(from asset: AVAsset, fps: Int = 30) async throws -> [[Float]] {
         let waveform = try await generateWaveform(from: asset, samplesPerSecond: fps * fftLength / 44100)
 
@@ -182,7 +182,7 @@ class AudioVisualizer: ObservableObject {
     }
 }
 
-// MARK: - 节拍检测
+// MARK: - Beat Detection
 
 struct BeatInfo {
     var time: CMTime
@@ -199,17 +199,17 @@ class BeatDetector: ObservableObject {
 
     private init() {}
 
-    // 检测节拍
+    // Detect beats
     func detectBeats(from asset: AVAsset, sensitivity: Float = 0.5) async throws -> [BeatInfo] {
         isDetecting = true
         defer { isDetecting = false }
 
-        // 生成波形
+        // Generate waveform
         let waveform = try await AudioVisualizer.shared.generateWaveform(from: asset, samplesPerSecond: 100)
 
         var beats: [BeatInfo] = []
 
-        // 计算能量变化
+        // Calculate energy changes
         var energyHistory: [Float] = []
         let windowSize = 10
 
@@ -226,10 +226,10 @@ class BeatDetector: ObservableObject {
                 let threshold = avgEnergy * (1.5 + sensitivity)
 
                 if energy > threshold && energy > 0.01 {
-                    // 检测到节拍
+                    // Beat detected
                     let time = CMTime(seconds: Double(i) / 100.0, preferredTimescale: 600)
 
-                    // 避免过于接近的节拍
+                    // Avoid beats that are too close together
                     if beats.isEmpty || CMTimeGetSeconds(CMTimeSubtract(time, beats.last!.time)) > 0.1 {
                         beats.append(BeatInfo(time: time, strength: energy, tempo: 0))
                     }
@@ -237,7 +237,7 @@ class BeatDetector: ObservableObject {
             }
         }
 
-        // 估算 BPM
+        // Estimate BPM
         if beats.count > 1 {
             var intervals: [Double] = []
             for i in 1..<beats.count {
@@ -250,7 +250,7 @@ class BeatDetector: ObservableObject {
 
             estimatedTempo = bpm
 
-            // 更新节拍信息
+            // Update beat information
             for i in 0..<beats.count {
                 beats[i].tempo = bpm
             }
@@ -260,7 +260,7 @@ class BeatDetector: ObservableObject {
         return beats
     }
 
-    // 自动对齐到节拍
+    // Auto-align to nearest beat
     func snapToNearestBeat(time: CMTime) -> CMTime {
         guard !detectedBeats.isEmpty else { return time }
 
@@ -278,7 +278,7 @@ class BeatDetector: ObservableObject {
         return nearestBeat.time
     }
 
-    // 根据节拍生成切换点
+    // Generate cut points based on beats
     func generateCutPoints(beats: [BeatInfo], interval: Int = 4) -> [CMTime] {
         var cutPoints: [CMTime] = []
 
@@ -292,7 +292,7 @@ class BeatDetector: ObservableObject {
     }
 }
 
-// MARK: - 自动踩点
+// MARK: - Auto Beat Sync
 
 class AutoBeatSync: ObservableObject {
     static let shared = AutoBeatSync()
@@ -302,12 +302,12 @@ class AutoBeatSync: ObservableObject {
 
     private init() {}
 
-    // 自动将视频片段对齐到音乐节拍
+    // Automatically align video clips to music beats
     func syncClipsToBeats(clips: [Clip], musicAsset: AVAsset, beatsPerClip: Int = 4) async throws -> [Clip] {
         isSyncing = true
         defer { isSyncing = false }
 
-        // 检测音乐节拍
+        // Detect music beats
         let beats = try await BeatDetector.shared.detectBeats(from: musicAsset)
 
         guard !beats.isEmpty else { return clips }
@@ -319,14 +319,14 @@ class AutoBeatSync: ObservableObject {
             var newClip = clip
 
             if currentBeatIndex < beats.count {
-                // 设置片段开始时间为节拍点
+                // Set clip start time to beat point
                 newClip.startTime = beats[currentBeatIndex].time
 
-                // 计算片段时长（到下一个切换点）
+                // Calculate clip duration (to next switch point)
                 let nextBeatIndex = min(currentBeatIndex + beatsPerClip, beats.count - 1)
                 let duration = CMTimeSubtract(beats[nextBeatIndex].time, beats[currentBeatIndex].time)
 
-                // 调整片段速度以匹配节拍间隔
+                // Adjust clip speed to match beat interval
                 let originalDuration = newClip.sourceTimeRange.duration
                 if CMTimeGetSeconds(originalDuration) > 0 && CMTimeGetSeconds(duration) > 0 {
                     newClip.speed = Float(CMTimeGetSeconds(originalDuration) / CMTimeGetSeconds(duration))
@@ -343,14 +343,14 @@ class AutoBeatSync: ObservableObject {
     }
 }
 
-// MARK: - 音频 Ducking
+// MARK: - Audio Ducking
 
 struct DuckingSettings: Codable {
     var threshold: Float = -20  // dB
     var reduction: Float = -12  // dB
-    var attackTime: Float = 0.1  // 秒
-    var releaseTime: Float = 0.5  // 秒
-    var holdTime: Float = 0.2  // 秒
+    var attackTime: Float = 0.1  // seconds
+    var releaseTime: Float = 0.5  // seconds
+    var holdTime: Float = 0.2  // seconds
 }
 
 class AudioDucker: ObservableObject {
@@ -361,24 +361,24 @@ class AudioDucker: ObservableObject {
 
     private init() {}
 
-    // 应用 Ducking（当有人声时自动降低背景音乐）
+    // Apply ducking (automatically lower background music when voice is present)
     func applyDucking(
         voiceTrack: AVAssetTrack,
         musicTrack: AVAssetTrack,
         settings: DuckingSettings
     ) async throws -> AVAudioMix {
-        // 分析人声轨道，找出有声音的时间段
+        // Analyze voice track to find active voice segments
         let voiceActivity = try await detectVoiceActivity(track: voiceTrack, threshold: settings.threshold)
 
-        // 创建音频混合
+        // Create audio mix
         let audioMix = AVMutableAudioMix()
 
-        // 为音乐轨道创建参数
+        // Create parameters for music track
         let musicParams = AVMutableAudioMixInputParameters(track: musicTrack)
 
-        // 根据人声活动调整音乐音量
+        // Adjust music volume based on voice activity
         for segment in voiceActivity {
-            // 淡入（开始降低音量）
+            // Fade in (start reducing volume)
             let duckStartTime = CMTimeSubtract(segment.start, CMTime(seconds: Double(settings.attackTime), preferredTimescale: 600))
             let normalVolume: Float = 1.0
             let duckedVolume = pow(10, settings.reduction / 20)  // dB to linear
@@ -386,7 +386,7 @@ class AudioDucker: ObservableObject {
             musicParams.setVolumeRamp(fromStartVolume: normalVolume, toEndVolume: duckedVolume,
                                       timeRange: CMTimeRange(start: duckStartTime, duration: CMTime(seconds: Double(settings.attackTime), preferredTimescale: 600)))
 
-            // 淡出（恢复音量）
+            // Fade out (restore volume)
             let duckEndTime = CMTimeAdd(segment.end, CMTime(seconds: Double(settings.holdTime), preferredTimescale: 600))
             musicParams.setVolumeRamp(fromStartVolume: duckedVolume, toEndVolume: normalVolume,
                                       timeRange: CMTimeRange(start: duckEndTime, duration: CMTime(seconds: Double(settings.releaseTime), preferredTimescale: 600)))
@@ -397,27 +397,27 @@ class AudioDucker: ObservableObject {
     }
 
     private func detectVoiceActivity(track: AVAssetTrack, threshold: Float) async throws -> [CMTimeRange] {
-        // 简化实现：检测音频能量超过阈值的时间段
+        // Simplified implementation: detect audio energy above threshold
         var segments: [CMTimeRange] = []
 
-        // 实际实现需要读取音频样本并分析能量
-        // 这里返回空数组作为占位
+        // Actual implementation would read audio samples and analyze energy
+        // Return empty array as placeholder
 
         return segments
     }
 }
 
-// MARK: - 混响效果
+// MARK: - Reverb Effects
 
 enum ReverbPreset: String, CaseIterable {
-    case none = "无"
-    case smallRoom = "小房间"
-    case mediumRoom = "中等房间"
-    case largeRoom = "大房间"
-    case hall = "大厅"
-    case cathedral = "大教堂"
-    case plate = "板式混响"
-    case spring = "弹簧混响"
+    case none = "None"
+    case smallRoom = "Small Room"
+    case mediumRoom = "Medium Room"
+    case largeRoom = "Large Room"
+    case hall = "Hall"
+    case cathedral = "Cathedral"
+    case plate = "Plate Reverb"
+    case spring = "Spring Reverb"
 
     var parameters: ReverbParameters {
         switch self {
@@ -449,20 +449,20 @@ struct ReverbParameters: Codable {
     var lowCut: Float = 100  // Hz
 }
 
-// MARK: - 空间音频
+// MARK: - Spatial Audio
 
 enum SpatialAudioFormat: String, CaseIterable {
-    case stereo = "立体声"
-    case surround51 = "5.1环绕声"
-    case surround71 = "7.1环绕声"
+    case stereo = "Stereo"
+    case surround51 = "5.1 Surround"
+    case surround71 = "7.1 Surround"
     case dolbyAtmos = "Dolby Atmos"
-    case binaural = "双耳3D"
+    case binaural = "Binaural 3D"
 }
 
 struct SpatialAudioPosition: Codable {
-    var azimuth: Float  // -180 to 180 度（水平角度）
-    var elevation: Float  // -90 to 90 度（垂直角度）
-    var distance: Float  // 0 to 1（相对距离）
+    var azimuth: Float  // -180 to 180 degrees (horizontal angle)
+    var elevation: Float  // -90 to 90 degrees (vertical angle)
+    var distance: Float  // 0 to 1 (relative distance)
 
     static let center = SpatialAudioPosition(azimuth: 0, elevation: 0, distance: 0.5)
     static let left = SpatialAudioPosition(azimuth: -90, elevation: 0, distance: 0.5)
@@ -488,7 +488,7 @@ class SpatialAudioProcessor: ObservableObject {
         return asset
     }
 
-    // 创建环绕声混音
+    // Create surround sound mix
     func createSurroundMix(
         tracks: [(track: AVAssetTrack, position: SpatialAudioPosition)]
     ) async throws -> AVAudioMix {
@@ -499,13 +499,13 @@ class SpatialAudioProcessor: ObservableObject {
         for (track, position) in tracks {
             let params = AVMutableAudioMixInputParameters(track: track)
 
-            // 根据位置设置声道音量
-            // 简化实现：仅处理左右平衡
+            // Set channel volume based on position
+            // Simplified implementation: only handle left-right balance
             let pan = position.azimuth / 90.0  // -1 to 1
             let leftVolume = Float(max(0, 1 - pan))
             let rightVolume = Float(max(0, 1 + pan))
 
-            // 设置音量（这是简化的立体声平移）
+            // Set volume (this is simplified stereo panning)
             params.setVolume(leftVolume, at: .zero)
 
             inputParameters.append(params)
@@ -516,7 +516,7 @@ class SpatialAudioProcessor: ObservableObject {
     }
 }
 
-// MARK: - 音频录制
+// MARK: - Audio Recording
 
 import AVFAudio
 
@@ -533,7 +533,7 @@ class AudioRecorder: ObservableObject {
 
     private init() {}
 
-    // 开始录制
+    // Start recording
     func startRecording() throws -> URL {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("recording_\(UUID().uuidString).m4a")
@@ -559,7 +559,7 @@ class AudioRecorder: ObservableObject {
         recordingURL = url
         recordingTime = 0
 
-        // 更新计时器和电平
+        // Update timer and level
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self = self, let recorder = self.audioRecorder else { return }
             self.recordingTime = recorder.currentTime
@@ -570,7 +570,7 @@ class AudioRecorder: ObservableObject {
         return url
     }
 
-    // 停止录制
+    // Stop recording
     func stopRecording() -> URL? {
         audioRecorder?.stop()
         timer?.invalidate()
@@ -584,18 +584,18 @@ class AudioRecorder: ObservableObject {
         return recordingURL
     }
 
-    // 暂停录制
+    // Pause recording
     func pauseRecording() {
         audioRecorder?.pause()
     }
 
-    // 继续录制
+    // Resume recording
     func resumeRecording() {
         audioRecorder?.record()
     }
 }
 
-// MARK: - 播客模式
+// MARK: - Podcast Processing
 
 struct PodcastSettings: Codable {
     var removeFillerWords: Bool = true
@@ -613,7 +613,7 @@ class PodcastProcessor: ObservableObject {
 
     private init() {}
 
-    // 处理播客音频
+    // Process podcast audio
     func processPodcast(asset: AVAsset, settings: PodcastSettings) async throws -> URL {
         isProcessing = true
         defer { isProcessing = false }
@@ -621,34 +621,34 @@ class PodcastProcessor: ObservableObject {
         let outputURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("podcast_processed.m4a")
 
-        // 应用各种处理
-        // 简化实现
+        // Apply various processing
+        // Simplified implementation
 
         return outputURL
     }
 
-    // 检测并移除填充词（嗯、啊、呃等）
+    // Detect and remove filler words (um, ah, uh, etc.)
     func detectFillerWords(in asset: AVAsset) async throws -> [CMTimeRange] {
-        // 使用语音识别检测填充词
+        // Use speech recognition to detect filler words
         var fillerRanges: [CMTimeRange] = []
 
-        // 实际实现需要使用 Speech framework
+        // Actual implementation would use Speech framework
 
         return fillerRanges
     }
 
-    // 检测说话人切换
+    // Detect speaker changes
     func detectSpeakerChanges(in asset: AVAsset) async throws -> [CMTime] {
-        // 使用说话人分离（Speaker Diarization）
+        // Use speaker diarization
         var switchPoints: [CMTime] = []
 
-        // 实际实现需要使用 ML 模型
+        // Actual implementation would use ML models
 
         return switchPoints
     }
 }
 
-// MARK: - 音乐库集成
+// MARK: - Music Library Integration
 
 struct MusicTrack: Identifiable, Codable {
     let id: UUID
@@ -678,7 +678,7 @@ class MusicLibrary: ObservableObject {
     static let shared = MusicLibrary()
 
     @Published var tracks: [MusicTrack] = []
-    @Published var categories: [String] = ["全部", "欢快", "悲伤", "激励", "放松", "浪漫", "史诗", "电子", "古典"]
+    @Published var categories: [String] = ["All", "Happy", "Sad", "Inspiring", "Relaxed", "Romantic", "Epic", "Electronic", "Classical"]
     @Published var isLoading = false
 
     private init() {
@@ -686,17 +686,17 @@ class MusicLibrary: ObservableObject {
     }
 
     private func loadBuiltInTracks() {
-        // 内置示例曲目
+        // Built-in sample tracks
         tracks = [
-            MusicTrack(title: "Upbeat Corporate", artist: "Stock Music", duration: 120, bpm: 120, genre: "Corporate", mood: "欢快"),
-            MusicTrack(title: "Inspiring Piano", artist: "Stock Music", duration: 180, bpm: 80, genre: "Classical", mood: "激励"),
-            MusicTrack(title: "Chill Lofi", artist: "Stock Music", duration: 240, bpm: 85, genre: "Lofi", mood: "放松"),
-            MusicTrack(title: "Epic Cinematic", artist: "Stock Music", duration: 150, bpm: 100, genre: "Cinematic", mood: "史诗"),
-            MusicTrack(title: "Happy Ukulele", artist: "Stock Music", duration: 90, bpm: 130, genre: "Acoustic", mood: "欢快"),
+            MusicTrack(title: "Upbeat Corporate", artist: "Stock Music", duration: 120, bpm: 120, genre: "Corporate", mood: "Happy"),
+            MusicTrack(title: "Inspiring Piano", artist: "Stock Music", duration: 180, bpm: 80, genre: "Classical", mood: "Inspiring"),
+            MusicTrack(title: "Chill Lofi", artist: "Stock Music", duration: 240, bpm: 85, genre: "Lofi", mood: "Relaxed"),
+            MusicTrack(title: "Epic Cinematic", artist: "Stock Music", duration: 150, bpm: 100, genre: "Cinematic", mood: "Epic"),
+            MusicTrack(title: "Happy Ukulele", artist: "Stock Music", duration: 90, bpm: 130, genre: "Acoustic", mood: "Happy"),
         ]
     }
 
-    // 搜索曲目
+    // Search tracks
     func search(query: String) -> [MusicTrack] {
         guard !query.isEmpty else { return tracks }
 
@@ -708,13 +708,13 @@ class MusicLibrary: ObservableObject {
         }
     }
 
-    // 按心情筛选
+    // Filter by mood
     func filterByMood(_ mood: String) -> [MusicTrack] {
-        guard mood != "全部" else { return tracks }
+        guard mood != "All" else { return tracks }
         return tracks.filter { $0.mood == mood }
     }
 
-    // 按 BPM 筛选
+    // Filter by BPM
     func filterByBPM(min: Double, max: Double) -> [MusicTrack] {
         return tracks.filter {
             guard let bpm = $0.bpm else { return false }
@@ -722,16 +722,16 @@ class MusicLibrary: ObservableObject {
         }
     }
 
-    // 推荐音乐（基于视频内容）
+    // Recommend music (based on video content)
     func recommendMusic(forVideoDuration duration: TimeInterval, mood: String?) async -> [MusicTrack] {
         var recommended = tracks
 
-        // 按时长筛选
+        // Filter by duration
         recommended = recommended.filter {
             $0.duration >= duration * 0.8 && $0.duration <= duration * 1.5
         }
 
-        // 按心情筛选
+        // Filter by mood
         if let mood = mood {
             recommended = recommended.filter { $0.mood == mood }
         }

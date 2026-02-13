@@ -4,9 +4,9 @@ import CoreImage
 import CoreGraphics
 import CoreText
 
-// MARK: - 6. 字幕增强模块
+// MARK: - 6. Subtitle Enhancement Module
 
-// MARK: - 卡拉OK字幕
+// MARK: - Karaoke Subtitles
 
 struct KaraokeSubtitle: Identifiable, Codable {
     let id: UUID
@@ -64,11 +64,11 @@ struct KaraokeStyle: Codable {
 }
 
 enum KaraokeHighlightStyle: String, Codable, CaseIterable {
-    case fillLeft = "从左填充"
-    case fillRight = "从右填充"
-    case grow = "放大"
-    case glow = "发光"
-    case colorChange = "变色"
+    case fillLeft = "Fill Left"
+    case fillRight = "Fill Right"
+    case grow = "Grow"
+    case glow = "Glow"
+    case colorChange = "Color Change"
 }
 
 class KaraokeRenderer: ObservableObject {
@@ -78,7 +78,7 @@ class KaraokeRenderer: ObservableObject {
 
     private init() {}
 
-    // 解析 LRC 歌词文件
+    // Parse LRC lyrics file
     func parseLRC(_ content: String) -> [KaraokeLine] {
         var lines: [KaraokeLine] = []
 
@@ -99,10 +99,10 @@ class KaraokeRenderer: ObservableObject {
             let totalSeconds = Double(minutes * 60 + seconds) + Double(milliseconds) / (milliseconds > 99 ? 1000 : 100)
             let startTime = CMTime(seconds: totalSeconds, preferredTimescale: 600)
 
-            // 创建单词（简化：按空格分割）
+            // Create words (simplified: split by space)
             let wordTexts = text.components(separatedBy: " ")
             var words: [KaraokeWord] = []
-            let wordDuration = 0.5  // 简化：每个词0.5秒
+            let wordDuration = 0.5  // Simplified: 0.5 seconds per word
 
             for (index, wordText) in wordTexts.enumerated() {
                 let wordStart = CMTimeAdd(startTime, CMTime(seconds: Double(index) * wordDuration, preferredTimescale: 600))
@@ -122,20 +122,20 @@ class KaraokeRenderer: ObservableObject {
         return lines
     }
 
-    // 渲染卡拉OK字幕
+    // Render karaoke subtitle
     func render(
         subtitle: KaraokeSubtitle,
         at time: CMTime,
         size: CGSize
     ) -> CIImage? {
-        // 找到当前行
+        // Find current line
         guard let currentLine = subtitle.lyrics.first(where: {
             CMTimeCompare(time, $0.startTime) >= 0 && CMTimeCompare(time, $0.endTime) <= 0
         }) else {
             return nil
         }
 
-        // 计算高亮进度
+        // Calculate highlight progress
         let lineProgress = CMTimeGetSeconds(CMTimeSubtract(time, currentLine.startTime)) /
                           CMTimeGetSeconds(CMTimeSubtract(currentLine.endTime, currentLine.startTime))
 
@@ -148,15 +148,15 @@ class KaraokeRenderer: ObservableObject {
         let image = renderer.image { context in
             let cgContext = context.cgContext
 
-            // 设置字体
+            // Set font
             let font = UIFont(name: style.font, size: style.fontSize) ?? UIFont.systemFont(ofSize: style.fontSize)
 
-            // 计算文字位置
+            // Calculate text position
             let textSize = line.text.size(withAttributes: [.font: font])
             let x = (size.width - textSize.width) / 2
             let y = size.height * style.position.y - textSize.height / 2
 
-            // 绘制描边
+            // Draw outline
             if style.outlineWidth > 0 {
                 cgContext.setLineWidth(style.outlineWidth * 2)
                 cgContext.setLineJoin(.round)
@@ -174,7 +174,7 @@ class KaraokeRenderer: ObservableObject {
                 line.text.draw(at: CGPoint(x: x, y: y), withAttributes: outlineAttrs)
             }
 
-            // 绘制普通文字
+            // Draw normal text
             cgContext.setTextDrawingMode(.fill)
             let normalAttrs: [NSAttributedString.Key: Any] = [
                 .font: font,
@@ -187,7 +187,7 @@ class KaraokeRenderer: ObservableObject {
             ]
             line.text.draw(at: CGPoint(x: x, y: y), withAttributes: normalAttrs)
 
-            // 绘制高亮部分
+            // Draw highlighted part
             let highlightWidth = textSize.width * CGFloat(progress)
 
             cgContext.saveGState()
@@ -214,7 +214,7 @@ class KaraokeRenderer: ObservableObject {
     }
 }
 
-// MARK: - 3D 文字
+// MARK: - 3D Text
 
 struct Text3D: Identifiable, Codable {
     let id: UUID
@@ -253,9 +253,9 @@ struct Text3D: Identifiable, Codable {
     }
 }
 
-// 使用 Title3DRenderer 进行渲染（已在 EffectsEnhanced 中实现）
+// Use Title3DRenderer for rendering (implemented in EffectsEnhanced)
 
-// MARK: - 手写动画
+// MARK: - Handwriting Animation
 
 struct HandwritingAnimation: Identifiable, Codable {
     let id: UUID
@@ -289,10 +289,10 @@ struct HandwritingAnimation: Identifiable, Codable {
 }
 
 enum HandwritingStyle: String, Codable, CaseIterable {
-    case natural = "自然"
-    case neat = "工整"
-    case calligraphy = "书法"
-    case childish = "童趣"
+    case natural = "Natural"
+    case neat = "Neat"
+    case calligraphy = "Calligraphy"
+    case childish = "Childish"
 }
 
 class HandwritingRenderer: ObservableObject {
@@ -300,14 +300,14 @@ class HandwritingRenderer: ObservableObject {
 
     private init() {}
 
-    // 渲染手写动画帧
+    // Render handwriting animation frame
     func render(_ animation: HandwritingAnimation, progress: Double, size: CGSize) -> CIImage? {
         #if canImport(UIKit)
         let renderer = UIGraphicsImageRenderer(size: size)
         let image = renderer.image { context in
             let cgContext = context.cgContext
 
-            // 获取文字路径
+            // Get text path
             let font = UIFont(name: animation.font, size: animation.fontSize) ?? UIFont.systemFont(ofSize: animation.fontSize)
 
             let attrString = NSAttributedString(string: animation.text, attributes: [.font: font])
@@ -336,11 +336,11 @@ class HandwritingRenderer: ObservableObject {
                 }
             }
 
-            // 计算要绘制的路径长度
+            // Calculate path length to draw
             let totalLength = pathLength(fullPath)
             let drawLength = totalLength * CGFloat(progress)
 
-            // 设置绘制样式
+            // Set drawing style
             cgContext.setStrokeColor(CGColor(
                 red: animation.color.red,
                 green: animation.color.green,
@@ -351,7 +351,7 @@ class HandwritingRenderer: ObservableObject {
             cgContext.setLineCap(.round)
             cgContext.setLineJoin(.round)
 
-            // 绘制部分路径
+            // Draw partial path
             let partialPath = createPartialPath(fullPath, length: drawLength)
             cgContext.addPath(partialPath)
             cgContext.strokePath()
@@ -378,7 +378,7 @@ class HandwritingRenderer: ObservableObject {
                 }
                 previousPoint = points[0]
             case .addQuadCurveToPoint:
-                // 简化：使用直线近似
+                // Simplified: approximate with straight line
                 if let prev = previousPoint {
                     length += hypot(points[1].x - prev.x, points[1].y - prev.y)
                 }
@@ -446,7 +446,7 @@ class HandwritingRenderer: ObservableObject {
     }
 }
 
-// MARK: - 弹幕效果
+// MARK: - Danmaku Subtitles
 
 struct Danmaku: Identifiable, Codable {
     let id: UUID
@@ -456,7 +456,7 @@ struct Danmaku: Identifiable, Codable {
     var fontSize: CGFloat
     var startTime: CMTime
     var duration: Double
-    var position: CGFloat  // 0-1，垂直位置
+    var position: CGFloat  // 0-1, vertical position
     var speed: CGFloat
 
     init(
@@ -483,9 +483,9 @@ struct Danmaku: Identifiable, Codable {
 }
 
 enum DanmakuType: String, Codable, CaseIterable {
-    case scroll = "滚动"
-    case top = "顶部固定"
-    case bottom = "底部固定"
+    case scroll = "Scroll"
+    case top = "Top Fixed"
+    case bottom = "Bottom Fixed"
 }
 
 class DanmakuRenderer: ObservableObject {
@@ -494,28 +494,28 @@ class DanmakuRenderer: ObservableObject {
     @Published var danmakus: [Danmaku] = []
     @Published var isEnabled = true
     @Published var opacity: Float = 1.0
-    @Published var density: Float = 1.0  // 弹幕密度
+    @Published var density: Float = 1.0  // Danmaku density
 
     private init() {}
 
-    // 添加弹幕
+    // Add danmaku
     func addDanmaku(_ danmaku: Danmaku) {
         danmakus.append(danmaku)
     }
 
-    // 从文件加载弹幕
+    // Load danmaku from file
     func loadFromFile(url: URL) throws {
         let content = try String(contentsOf: url, encoding: .utf8)
-        // 解析弹幕文件格式（如 B站弹幕 XML）
+        // Parse danmaku file format (e.g., Bilibili danmaku XML)
         danmakus = parseDanmakuXML(content)
     }
 
     private func parseDanmakuXML(_ xml: String) -> [Danmaku] {
-        // 简化实现
+        // Simplified implementation
         return []
     }
 
-    // 渲染弹幕层
+    // Render danmaku layer
     func render(at time: CMTime, size: CGSize) -> CIImage? {
         guard isEnabled else { return nil }
 
@@ -539,7 +539,7 @@ class DanmakuRenderer: ObservableObject {
 
         var ciImage = CIImage(image: image)
 
-        // 应用透明度
+        // Apply opacity
         if opacity < 1.0, let opacityFilter = CIFilter(name: "CIColorMatrix") {
             opacityFilter.setValue(ciImage, forKey: kCIInputImageKey)
             opacityFilter.setValue(CIVector(x: 0, y: 0, z: 0, w: CGFloat(opacity)), forKey: "inputAVector")
@@ -562,7 +562,7 @@ class DanmakuRenderer: ObservableObject {
 
         switch danmaku.type {
         case .scroll:
-            // 从右向左滚动
+            // Scroll from right to left
             x = size.width - (size.width + textSize.width) * CGFloat(progress) * danmaku.speed
             y = size.height * danmaku.position
         case .top:
@@ -573,7 +573,7 @@ class DanmakuRenderer: ObservableObject {
             y = size.height * 0.85
         }
 
-        // 绘制描边
+        // Draw stroke
         let strokeAttrs: [NSAttributedString.Key: Any] = [
             .font: font,
             .foregroundColor: UIColor.black,
@@ -582,7 +582,7 @@ class DanmakuRenderer: ObservableObject {
         ]
         danmaku.text.draw(at: CGPoint(x: x, y: y), withAttributes: strokeAttrs)
 
-        // 绘制文字
+        // Draw text
         let textAttrs: [NSAttributedString.Key: Any] = [
             .font: font,
             .foregroundColor: UIColor(
@@ -597,7 +597,7 @@ class DanmakuRenderer: ObservableObject {
     #endif
 }
 
-// MARK: - 路径文字
+// MARK: - Path Text
 
 struct PathText: Identifiable, Codable {
     let id: UUID
@@ -607,7 +607,7 @@ struct PathText: Identifiable, Codable {
     var color: CodableColor
     var pathType: TextPathType
     var customPath: [CGPoint]?
-    var offset: CGFloat  // 沿路径偏移
+    var offset: CGFloat  // Offset along path
     var animated: Bool
     var animationDuration: Double
 
@@ -637,12 +637,12 @@ struct PathText: Identifiable, Codable {
 }
 
 enum TextPathType: String, Codable, CaseIterable {
-    case wave = "波浪"
-    case circle = "圆形"
-    case arc = "弧形"
-    case spiral = "螺旋"
-    case heart = "心形"
-    case custom = "自定义"
+    case wave = "Wave"
+    case circle = "Circle"
+    case arc = "Arc"
+    case spiral = "Spiral"
+    case heart = "Heart"
+    case custom = "Custom"
 }
 
 class PathTextRenderer: ObservableObject {
@@ -650,7 +650,7 @@ class PathTextRenderer: ObservableObject {
 
     private init() {}
 
-    // 生成路径
+    // Generate path
     func generatePath(type: TextPathType, size: CGSize) -> CGPath {
         let path = CGMutablePath()
 
@@ -710,7 +710,7 @@ class PathTextRenderer: ObservableObject {
         return path
     }
 
-    // 渲染路径文字
+    // Render path text
     func render(_ pathText: PathText, time: Double, size: CGSize) -> CIImage? {
         let path = generatePath(type: pathText.pathType, size: size)
 
@@ -726,7 +726,7 @@ class PathTextRenderer: ObservableObject {
 
             let font = UIFont(name: pathText.font, size: pathText.fontSize) ?? UIFont.systemFont(ofSize: pathText.fontSize)
 
-            // 沿路径绘制每个字符
+            // Draw each character along the path
             let pathLength = self.pathLength(path)
             let charSpacing = pathLength / CGFloat(pathText.text.count + 1)
 
@@ -762,7 +762,7 @@ class PathTextRenderer: ObservableObject {
     }
 
     private func pathLength(_ path: CGPath) -> CGFloat {
-        // 简化计算
+        // Simplified calculation
         var length: CGFloat = 0
         var previousPoint: CGPoint?
 
@@ -831,27 +831,27 @@ class PathTextRenderer: ObservableObject {
     }
 }
 
-// MARK: - 字幕翻译
+// MARK: - Subtitle Translation
 
 class SubtitleTranslator: ObservableObject {
     static let shared = SubtitleTranslator()
 
     @Published var isTranslating = false
     @Published var supportedLanguages = [
-        ("zh", "中文"),
-        ("en", "英语"),
-        ("ja", "日语"),
-        ("ko", "韩语"),
-        ("fr", "法语"),
-        ("de", "德语"),
-        ("es", "西班牙语"),
-        ("ru", "俄语"),
-        ("ar", "阿拉伯语")
+        ("zh", "Chinese"),
+        ("en", "English"),
+        ("ja", "Japanese"),
+        ("ko", "Korean"),
+        ("fr", "French"),
+        ("de", "German"),
+        ("es", "Spanish"),
+        ("ru", "Russian"),
+        ("ar", "Arabic")
     ]
 
     private init() {}
 
-    // 翻译字幕
+    // Translate subtitles
     func translate(
         subtitles: [TextOverlay],
         from sourceLanguage: String,
@@ -872,12 +872,12 @@ class SubtitleTranslator: ObservableObject {
     }
 
     private func translateText(_ text: String, from: String, to: String) async throws -> String {
-        // 调用翻译 API
-        // 简化实现：返回原文
+        // Call translation API
+        // Simplified implementation: return original text
         return text
     }
 
-    // 导出双语字幕
+    // Export bilingual subtitles
     func exportBilingual(
         original: [TextOverlay],
         translated: [TextOverlay],
@@ -910,11 +910,11 @@ class SubtitleTranslator: ObservableObject {
     }
 
     enum SubtitleFormat {
-        case srt, ass, vtt
+        case srt, vtt
     }
 }
 
-// MARK: - 字幕模板
+// MARK: - Subtitle Templates
 
 struct SubtitleTemplate: Identifiable, Codable {
     let id: UUID
@@ -945,7 +945,7 @@ class SubtitleTemplateManager: ObservableObject {
     static let shared = SubtitleTemplateManager()
 
     @Published var templates: [SubtitleTemplate] = []
-    @Published var categories = ["基础", "社交", "Vlog", "电影", "新闻", "综艺", "教程"]
+    @Published var categories = ["Basic", "Social", "Vlog", "Cinema", "News", "Entertainment", "Tutorial"]
 
     private init() {
         loadBuiltInTemplates()
@@ -954,32 +954,32 @@ class SubtitleTemplateManager: ObservableObject {
     private func loadBuiltInTemplates() {
         templates = [
             SubtitleTemplate(
-                name: "简洁白字",
-                category: "基础",
+                name: "Clean White Text",
+                category: "Basic",
                 style: TextStyle(fontName: "PingFang SC", fontSize: 32, textColor: CodableColor(red: 1, green: 1, blue: 1, alpha: 1)),
                 animation: .fadeIn
             ),
             SubtitleTemplate(
-                name: "黄色描边",
-                category: "基础",
+                name: "Yellow Outline",
+                category: "Basic",
                 style: TextStyle(fontName: "PingFang SC", fontSize: 36, textColor: CodableColor(red: 1, green: 0.9, blue: 0, alpha: 1), strokeColor: CodableColor(red: 0, green: 0, blue: 0, alpha: 1), strokeWidth: 2),
                 animation: .fadeIn
             ),
             SubtitleTemplate(
-                name: "抖音热门",
-                category: "社交",
+                name: "Social Media Trending",
+                category: "Social",
                 style: TextStyle(fontName: "PingFang SC", fontSize: 40, textColor: CodableColor(red: 1, green: 1, blue: 1, alpha: 1), backgroundColor: CodableColor(red: 0, green: 0, blue: 0, alpha: 0.7)),
                 animation: .pop
             ),
             SubtitleTemplate(
-                name: "电影字幕",
-                category: "电影",
+                name: "Movie Subtitle",
+                category: "Cinema",
                 style: TextStyle(fontName: "STSong", fontSize: 28, textColor: CodableColor(red: 1, green: 1, blue: 1, alpha: 1)),
                 animation: .fadeIn
             ),
             SubtitleTemplate(
-                name: "新闻标题",
-                category: "新闻",
+                name: "News Title",
+                category: "News",
                 style: TextStyle(fontName: "PingFang SC", fontSize: 48, textColor: CodableColor(red: 1, green: 0, blue: 0, alpha: 1), backgroundColor: CodableColor(red: 1, green: 1, blue: 1, alpha: 0.9)),
                 animation: .slideFromBottom
             ),
@@ -987,7 +987,7 @@ class SubtitleTemplateManager: ObservableObject {
     }
 
     func filterByCategory(_ category: String) -> [SubtitleTemplate] {
-        if category == "全部" {
+        if category == "All" {
             return templates
         }
         return templates.filter { $0.category == category }

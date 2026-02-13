@@ -2,7 +2,7 @@
 //  AccessibilityFeatures.swift
 //  VideoEditor
 //
-//  辅助功能模块 - VoiceOver、高对比度、键盘导航、色盲模式
+//  Accessibility features module - VoiceOver, high contrast, keyboard navigation, color blind mode
 //
 
 import SwiftUI
@@ -15,18 +15,18 @@ import AppKit
 import UIKit
 #endif
 
-// MARK: - 辅助功能设置
+// MARK: - Accessibility Settings
 
-/// 辅助功能配置
+/// Accessibility configuration
 struct AccessibilitySettings: Codable {
     // VoiceOver
     var voiceOverEnabled: Bool = false
     var announceClipChanges: Bool = true
     var announcePlaybackState: Bool = true
     var announceTimeUpdates: Bool = false
-    var timeUpdateInterval: Double = 5.0 // 秒
+    var timeUpdateInterval: Double = 5.0 // seconds
 
-    // 视觉
+    // Visual
     var highContrastMode: Bool = false
     var reduceMotion: Bool = false
     var reduceTransparency: Bool = false
@@ -35,68 +35,68 @@ struct AccessibilitySettings: Codable {
     var largerText: Bool = false
     var textScale: Double = 1.0
 
-    // 色盲模式
+    // Color blind mode
     var colorBlindMode: ColorBlindMode = .none
     var colorBlindStrength: Double = 1.0
 
-    // 键盘
+    // Keyboard
     var fullKeyboardAccess: Bool = false
     var focusIndicatorStyle: FocusIndicatorStyle = .default
     var stickyKeys: Bool = false
     var slowKeys: Bool = false
     var slowKeysDelay: Double = 0.5
 
-    // 音频
+    // Audio
     var monoAudio: Bool = false
-    var audioBalance: Double = 0.0 // -1.0 到 1.0
+    var audioBalance: Double = 0.0 // -1.0 to 1.0
     var visualNotifications: Bool = false
     var flashScreenOnAlert: Bool = false
 
-    // 鼠标/触控
+    // Mouse/Touch
     var cursorSize: CursorSize = .normal
     var shakeToLocateCursor: Bool = false
     var dwellControl: Bool = false
     var dwellTime: Double = 1.0
 
-    // 字幕
+    // Captions
     var alwaysShowCaptions: Bool = false
     var captionStyle: CaptionStyle = .default
 
     enum ColorBlindMode: String, Codable, CaseIterable {
-        case none = "无"
-        case protanopia = "红色盲"
-        case deuteranopia = "绿色盲"
-        case tritanopia = "蓝色盲"
-        case achromatopsia = "全色盲"
-        case protanomaly = "红色弱"
-        case deuteranomaly = "绿色弱"
-        case tritanomaly = "蓝色弱"
+        case none = "None"
+        case protanopia = "Protanopia"
+        case deuteranopia = "Deuteranopia"
+        case tritanopia = "Tritanopia"
+        case achromatopsia = "Achromatopsia"
+        case protanomaly = "Protanomaly"
+        case deuteranomaly = "Deuteranomaly"
+        case tritanomaly = "Tritanomaly"
     }
 
     enum FocusIndicatorStyle: String, Codable, CaseIterable {
-        case `default` = "默认"
-        case highContrast = "高对比度"
-        case custom = "自定义"
+        case `default` = "Default"
+        case highContrast = "High Contrast"
+        case custom = "Custom"
     }
 
     enum CursorSize: String, Codable, CaseIterable {
-        case normal = "正常"
-        case large = "大"
-        case extraLarge = "特大"
+        case normal = "Normal"
+        case large = "Large"
+        case extraLarge = "Extra Large"
     }
 
     enum CaptionStyle: String, Codable, CaseIterable {
-        case `default` = "默认"
-        case largeText = "大字"
-        case classic = "经典"
-        case outline = "描边"
-        case custom = "自定义"
+        case `default` = "Default"
+        case largeText = "Large Text"
+        case classic = "Classic"
+        case outline = "Outline"
+        case custom = "Custom"
     }
 }
 
-// MARK: - 辅助功能管理器
+// MARK: - Accessibility Manager
 
-/// 辅助功能管理器
+/// Accessibility manager
 class AccessibilityManager: NSObject, ObservableObject {
     static let shared = AccessibilityManager()
 
@@ -142,7 +142,7 @@ class AccessibilityManager: NSObject, ObservableObject {
         #endif
 
         #if canImport(AppKit)
-        // macOS VoiceOver检测
+        // macOS VoiceOver detection
         isVoiceOverRunning = NSWorkspace.shared.isVoiceOverEnabled
         #endif
     }
@@ -158,31 +158,31 @@ class AccessibilityManager: NSObject, ObservableObject {
         speechSynthesizer?.delegate = self
     }
 
-    /// 应用设置
+    /// Apply settings
     func applySettings() {
-        // 应用高对比度
+        // Apply high contrast
         if settings.highContrastMode {
             applyHighContrast()
         }
 
-        // 应用色盲模式
+        // Apply color blind mode
         if settings.colorBlindMode != .none {
             applyColorBlindFilter()
         }
 
-        // 应用音频设置
+        // Apply audio settings
         applyAudioSettings()
     }
 
-    // MARK: - VoiceOver支持
+    // MARK: - VoiceOver Support
 
-    /// 播报消息
+    /// Announce message
     func announce(_ message: String, priority: AnnouncementPriority = .normal) {
         guard settings.voiceOverEnabled || isVoiceOverRunning else { return }
 
         switch priority {
         case .high:
-            // 中断当前播报
+            // Interrupt current announcement
             speechSynthesizer?.stopSpeaking(at: .immediate)
             speak(message)
         case .normal:
@@ -214,32 +214,32 @@ class AccessibilityManager: NSObject, ObservableObject {
         speechSynthesizer?.speak(utterance)
 
         #if canImport(UIKit)
-        // 同时通过VoiceOver通知
+        // Also notify through VoiceOver
         UIAccessibility.post(notification: .announcement, argument: message)
         #endif
     }
 
-    /// 播报播放状态
+    /// Announce playback state
     func announcePlaybackState(isPlaying: Bool) {
         guard settings.announcePlaybackState else { return }
-        announce(isPlaying ? "正在播放" : "已暂停")
+        announce(isPlaying ? "Playing" : "Paused")
     }
 
-    /// 播报时间
+    /// Announce time
     func announceTime(_ time: TimeInterval) {
         guard settings.announceTimeUpdates else { return }
 
         let minutes = Int(time) / 60
         let seconds = Int(time) % 60
-        announce("当前时间 \(minutes)分\(seconds)秒", priority: .low)
+        announce("Current time \(minutes) minutes \(seconds) seconds", priority: .low)
     }
 
-    /// 播报片段信息
+    /// Announce clip information
     func announceClipInfo(name: String, duration: TimeInterval) {
         guard settings.announceClipChanges else { return }
 
         let durationStr = formatDuration(duration)
-        announce("片段 \(name)，时长 \(durationStr)")
+        announce("Clip \(name), duration \(durationStr)")
     }
 
     private func formatDuration(_ duration: TimeInterval) -> String {
@@ -247,41 +247,41 @@ class AccessibilityManager: NSObject, ObservableObject {
         let seconds = Int(duration) % 60
 
         if minutes > 0 {
-            return "\(minutes)分\(seconds)秒"
+            return "\(minutes) minutes \(seconds) seconds"
         } else {
-            return "\(seconds)秒"
+            return "\(seconds) seconds"
         }
     }
 
-    // MARK: - 高对比度
+    // MARK: - High Contrast
 
     private func applyHighContrast() {
-        // 应用高对比度主题
+        // Apply high contrast theme
         ThemeManager.shared.switchTheme(to: ThemeManager.createHighContrastTheme())
     }
 
-    /// 获取高对比度颜色
+    /// Get high contrast color
     func getAccessibleColor(for color: Color, background: Color = .black) -> Color {
         if settings.highContrastMode {
-            // 确保足够的对比度 (WCAG AA标准 4.5:1)
+            // Ensure sufficient contrast (WCAG AA standard 4.5:1)
             return ensureContrast(foreground: color, background: background, ratio: 4.5)
         }
         return color
     }
 
     private func ensureContrast(foreground: Color, background: Color, ratio: Double) -> Color {
-        // 简化的对比度调整
+        // Simplified contrast adjustment
         return foreground
     }
 
-    // MARK: - 色盲模式
+    // MARK: - Color Blind Mode
 
     private func applyColorBlindFilter() {
-        // 色盲滤镜矩阵
-        // 这些将应用于视频预览和UI
+        // Color blind filter matrix
+        // These will be applied to video preview and UI
     }
 
-    /// 获取色盲模式下的颜色矩阵
+    /// Get color matrix for color blind mode
     func getColorBlindMatrix() -> [Float]? {
         guard settings.colorBlindMode != .none else { return nil }
 
@@ -321,7 +321,7 @@ class AccessibilityManager: NSObject, ObservableObject {
         }
     }
 
-    /// 模拟色盲视觉
+    /// Simulate color blind vision
     func simulateColorBlindness(mode: AccessibilitySettings.ColorBlindMode) -> [Float]? {
         switch mode {
         case .protanopia:
@@ -350,38 +350,38 @@ class AccessibilityManager: NSObject, ObservableObject {
         }
     }
 
-    // MARK: - 音频设置
+    // MARK: - Audio Settings
 
     private func applyAudioSettings() {
-        // 单声道音频
-        // 音频平衡
+        // Mono audio
+        // Audio balance
     }
 
-    /// 获取调整后的音频平衡
+    /// Get adjusted audio balance
     func getAudioBalance() -> Float {
         return Float(settings.audioBalance)
     }
 
-    /// 是否使用单声道
+    /// Whether to use mono audio
     func shouldUseMono() -> Bool {
         return settings.monoAudio
     }
 
-    // MARK: - 视觉通知
+    // MARK: - Visual Notifications
 
-    /// 显示视觉通知
+    /// Show visual notification
     func showVisualNotification(message: String) {
         guard settings.visualNotifications else { return }
 
         #if canImport(AppKit)
-        // macOS: 闪烁屏幕或显示横幅
+        // macOS: Flash screen or show banner
         if settings.flashScreenOnAlert {
             flashScreen()
         }
         #endif
 
         #if canImport(UIKit)
-        // iOS: 显示横幅通知
+        // iOS: Show banner notification
         #endif
     }
 
@@ -415,9 +415,9 @@ extension AccessibilityManager: AVSpeechSynthesizerDelegate {
     }
 }
 
-// MARK: - 键盘导航
+// MARK: - Keyboard Navigation
 
-/// 键盘焦点管理器
+/// Keyboard focus manager
 class KeyboardNavigationManager: ObservableObject {
     static let shared = KeyboardNavigationManager()
 
@@ -438,7 +438,7 @@ class KeyboardNavigationManager: ObservableObject {
         var action: (() -> Void)?
     }
 
-    /// 注册可聚焦元素
+    /// Register focusable element
     func registerFocusable(
         id: String,
         label: String,
@@ -466,7 +466,7 @@ class KeyboardNavigationManager: ObservableObject {
         focusGroups[group]?.sort { $0.order < $1.order }
     }
 
-    /// 注销元素
+    /// Unregister element
     func unregisterFocusable(id: String) {
         focusableElements.removeAll { $0.id == id }
         for (group, _) in focusGroups {
@@ -474,7 +474,7 @@ class KeyboardNavigationManager: ObservableObject {
         }
     }
 
-    /// 移动焦点到下一个元素
+    /// Move focus to next element
     func focusNext() {
         guard let currentId = focusedElementId else {
             focusFirst()
@@ -487,7 +487,7 @@ class KeyboardNavigationManager: ObservableObject {
         }
     }
 
-    /// 移动焦点到上一个元素
+    /// Move focus to previous element
     func focusPrevious() {
         guard let currentId = focusedElementId else {
             focusLast()
@@ -500,21 +500,21 @@ class KeyboardNavigationManager: ObservableObject {
         }
     }
 
-    /// 移动焦点到第一个元素
+    /// Move focus to first element
     func focusFirst() {
         if let first = focusableElements.first {
             focusElement(first)
         }
     }
 
-    /// 移动焦点到最后一个元素
+    /// Move focus to last element
     func focusLast() {
         if let last = focusableElements.last {
             focusElement(last)
         }
     }
 
-    /// 在组内移动焦点
+    /// Move focus within group
     func focusNextInGroup(_ group: String) {
         guard let elements = focusGroups[group], !elements.isEmpty else { return }
 
@@ -527,7 +527,7 @@ class KeyboardNavigationManager: ObservableObject {
         }
     }
 
-    /// 激活当前焦点元素
+    /// Activate current focused element
     func activateFocusedElement() {
         guard let currentId = focusedElementId,
               let element = focusableElements.first(where: { $0.id == currentId }) else {
@@ -536,23 +536,23 @@ class KeyboardNavigationManager: ObservableObject {
 
         element.action?()
 
-        // 播报
-        AccessibilityManager.shared.announce("已激活 \(element.label)")
+        // Announce
+        AccessibilityManager.shared.announce("Activated \(element.label)")
     }
 
     private func focusElement(_ element: FocusableElement) {
         focusedElementId = element.id
         focusPath.append(element.id)
 
-        // 播报
+        // Announce
         var announcement = element.label
         if let hint = element.hint {
-            announcement += "。\(hint)"
+            announcement += ". \(hint)"
         }
         AccessibilityManager.shared.announce(announcement)
     }
 
-    /// 处理键盘事件
+    /// Handle keyboard events
     func handleKeyPress(keyCode: UInt16, modifiers: NSEvent.ModifierFlags) -> Bool {
         guard isFocusModeActive else { return false }
 
@@ -575,7 +575,7 @@ class KeyboardNavigationManager: ObservableObject {
             return true
 
         case 0x7B: // Left Arrow
-            // 可以实现组内导航
+            // Can implement within-group navigation
             return false
 
         case 0x7C: // Right Arrow
@@ -595,9 +595,9 @@ class KeyboardNavigationManager: ObservableObject {
     }
 }
 
-// MARK: - 辅助功能标签
+// MARK: - Accessibility Labels
 
-/// 辅助功能标签
+/// Accessibility label
 struct AccessibilityLabel {
     var label: String
     var hint: String?
@@ -623,47 +623,47 @@ struct AccessibilityLabel {
     }
 }
 
-/// 辅助功能特性
+/// Accessibility traits
 enum AccessibilityTrait: String {
-    case button = "按钮"
-    case link = "链接"
-    case header = "标题"
-    case image = "图片"
-    case selected = "已选择"
-    case notEnabled = "不可用"
-    case adjustable = "可调整"
-    case allowsDirectInteraction = "允许直接交互"
-    case causesPageTurn = "翻页"
-    case playsSound = "播放声音"
-    case startsMediaSession = "开始媒体会话"
-    case summaryElement = "摘要元素"
-    case updatesFrequently = "频繁更新"
+    case button = "Button"
+    case link = "Link"
+    case header = "Header"
+    case image = "Image"
+    case selected = "Selected"
+    case notEnabled = "Not Enabled"
+    case adjustable = "Adjustable"
+    case allowsDirectInteraction = "Allows Direct Interaction"
+    case causesPageTurn = "Causes Page Turn"
+    case playsSound = "Plays Sound"
+    case startsMediaSession = "Starts Media Session"
+    case summaryElement = "Summary Element"
+    case updatesFrequently = "Updates Frequently"
 }
 
-/// 辅助功能动作
+/// Accessibility action
 struct AccessibilityAction {
     var name: String
     var handler: () -> Void
 }
 
-// MARK: - 视频辅助功能
+// MARK: - Video Accessibility
 
-/// 视频辅助功能管理器
+/// Video accessibility manager
 class VideoAccessibilityManager: ObservableObject {
     static let shared = VideoAccessibilityManager()
 
     @Published var isDescriptionEnabled: Bool = false
     @Published var currentAudioDescription: String = ""
 
-    /// 生成场景描述
+    /// Generate scene description
     func generateSceneDescription(for image: CIImage) -> String {
-        // 使用Vision框架分析图像并生成描述
-        // 这里应该调用AIAdvancedFeatures中的分析功能
+        // Use Vision framework to analyze image and generate description
+        // This should call analysis functionality from AIAdvancedFeatures
 
-        return "场景描述"
+        return "Scene description"
     }
 
-    /// 播放音频描述
+    /// Play audio description
     func playAudioDescription(_ description: String) {
         guard isDescriptionEnabled else { return }
 
@@ -671,16 +671,16 @@ class VideoAccessibilityManager: ObservableObject {
         currentAudioDescription = description
     }
 
-    /// 生成时间线描述
+    /// Generate timeline description
     func generateTimelineDescription(clips: [Any]) -> String {
-        // 生成时间线的文字描述
-        return "时间线包含\(clips.count)个片段"
+        // Generate text description of timeline
+        return "Timeline contains \(clips.count) clips"
     }
 }
 
-// MARK: - 辅助功能测试
+// MARK: - Accessibility Testing
 
-/// 辅助功能测试器
+/// Accessibility tester
 class AccessibilityTester: ObservableObject {
     static let shared = AccessibilityTester()
 
@@ -703,21 +703,21 @@ class AccessibilityTester: ObservableObject {
     }
 
     enum TestCategory: String, CaseIterable {
-        case contrast = "对比度"
-        case labels = "标签"
-        case navigation = "导航"
-        case focusOrder = "焦点顺序"
-        case audio = "音频"
-        case motion = "动画"
-        case touch = "触控"
+        case contrast = "Contrast"
+        case labels = "Labels"
+        case navigation = "Navigation"
+        case focusOrder = "Focus Order"
+        case audio = "Audio"
+        case motion = "Motion"
+        case touch = "Touch"
     }
 
-    /// 运行所有测试
+    /// Run all tests
     func runAllTests() {
         isRunning = true
         testResults.removeAll()
 
-        // 运行各类测试
+        // Run various tests
         runContrastTests()
         runLabelTests()
         runNavigationTests()
@@ -729,94 +729,94 @@ class AccessibilityTester: ObservableObject {
     }
 
     private func runContrastTests() {
-        // 测试对比度
+        // Test contrast
         let result = TestResult(
             id: UUID(),
             category: .contrast,
-            name: "文本对比度检查",
+            name: "Text Contrast Check",
             passed: true,
-            message: "所有文本元素满足WCAG AA标准(4.5:1)",
+            message: "All text elements meet WCAG AA standard (4.5:1)",
             severity: .info
         )
         testResults.append(result)
     }
 
     private func runLabelTests() {
-        // 测试辅助功能标签
+        // Test accessibility labels
         let result = TestResult(
             id: UUID(),
             category: .labels,
-            name: "辅助功能标签检查",
+            name: "Accessibility Label Check",
             passed: true,
-            message: "所有交互元素都有辅助功能标签",
+            message: "All interactive elements have accessibility labels",
             severity: .info
         )
         testResults.append(result)
     }
 
     private func runNavigationTests() {
-        // 测试键盘导航
+        // Test keyboard navigation
         let result = TestResult(
             id: UUID(),
             category: .navigation,
-            name: "键盘导航检查",
+            name: "Keyboard Navigation Check",
             passed: true,
-            message: "所有功能可通过键盘访问",
+            message: "All functionality accessible via keyboard",
             severity: .info
         )
         testResults.append(result)
     }
 
     private func runFocusOrderTests() {
-        // 测试焦点顺序
+        // Test focus order
         let result = TestResult(
             id: UUID(),
             category: .focusOrder,
-            name: "焦点顺序检查",
+            name: "Focus Order Check",
             passed: true,
-            message: "焦点顺序逻辑合理",
+            message: "Focus order is logical",
             severity: .info
         )
         testResults.append(result)
     }
 
     private func runAudioTests() {
-        // 测试音频辅助功能
+        // Test audio accessibility
         let result = TestResult(
             id: UUID(),
             category: .audio,
-            name: "音频替代方案检查",
+            name: "Audio Alternative Check",
             passed: true,
-            message: "视频内容提供字幕或转录",
+            message: "Video content provides captions or transcripts",
             severity: .info
         )
         testResults.append(result)
     }
 
     private func runMotionTests() {
-        // 测试动画设置
+        // Test animation settings
         let result = TestResult(
             id: UUID(),
             category: .motion,
-            name: "减少动画检查",
+            name: "Reduce Motion Check",
             passed: true,
-            message: "尊重系统'减少动画'设置",
+            message: "Respects system 'Reduce Motion' setting",
             severity: .info
         )
         testResults.append(result)
     }
 
-    /// 生成报告
+    /// Generate report
     func generateReport() -> String {
-        var report = "辅助功能测试报告\n"
-        report += "================\n\n"
+        var report = "Accessibility Test Report\n"
+        report += "========================\n\n"
 
         let passed = testResults.filter { $0.passed }.count
         let failed = testResults.filter { !$0.passed }.count
 
-        report += "总计: \(testResults.count) 项测试\n"
-        report += "通过: \(passed)\n"
-        report += "失败: \(failed)\n\n"
+        report += "Total: \(testResults.count) tests\n"
+        report += "Passed: \(passed)\n"
+        report += "Failed: \(failed)\n\n"
 
         for category in TestCategory.allCases {
             let categoryResults = testResults.filter { $0.category == category }
@@ -834,9 +834,9 @@ class AccessibilityTester: ObservableObject {
     }
 }
 
-// MARK: - SwiftUI辅助功能修饰符
+// MARK: - SwiftUI Accessibility Modifiers
 
-/// 辅助功能视图修饰符
+/// Accessibility view modifier
 struct AccessibilityModifier: ViewModifier {
     let label: AccessibilityLabel
 
@@ -850,23 +850,23 @@ struct AccessibilityModifier: ViewModifier {
 }
 
 extension View {
-    /// 应用辅助功能标签
+    /// Apply accessibility label
     func accessibilityLabeled(_ label: AccessibilityLabel) -> some View {
         self.modifier(AccessibilityModifier(label: label))
     }
 
-    /// 高对比度边框
+    /// High contrast border
     func highContrastBorder() -> some View {
         self.modifier(HighContrastBorderModifier())
     }
 
-    /// 焦点指示器
+    /// Focus indicator
     func focusIndicator(isFocused: Bool) -> some View {
         self.modifier(FocusIndicatorModifier(isFocused: isFocused))
     }
 }
 
-/// 高对比度边框修饰符
+/// High contrast border modifier
 struct HighContrastBorderModifier: ViewModifier {
     @ObservedObject private var accessibilityManager = AccessibilityManager.shared
 
@@ -879,7 +879,7 @@ struct HighContrastBorderModifier: ViewModifier {
     }
 }
 
-/// 焦点指示器修饰符
+/// Focus indicator modifier
 struct FocusIndicatorModifier: ViewModifier {
     let isFocused: Bool
     @ObservedObject private var accessibilityManager = AccessibilityManager.shared
@@ -904,12 +904,12 @@ struct FocusIndicatorModifier: ViewModifier {
     }
 }
 
-// MARK: - 辅助功能快捷键
+// MARK: - Accessibility Shortcuts
 
-/// 辅助功能快捷键
+/// Accessibility shortcuts
 struct AccessibilityShortcuts {
     static let toggleVoiceOver = KeyboardShortcut(
-        action: .toggleFullscreen, // 临时使用
+        action: .toggleFullscreen, // Temporary use
         keyCode: 0x03, // F
         modifiers: [.command, .option],
         category: .general
@@ -937,29 +937,29 @@ struct AccessibilityShortcuts {
     )
 }
 
-// MARK: - 色盲模拟预览
+// MARK: - Color Blind Simulation Preview
 
-/// 色盲模拟视图
+/// Color blind simulation view
 struct ColorBlindSimulationView: View {
     let image: Image
     @ObservedObject private var accessibilityManager = AccessibilityManager.shared
 
     var body: some View {
         VStack(spacing: 20) {
-            Text("色盲模拟预览")
+            Text("Color Blind Simulation Preview")
                 .font(.headline)
 
             HStack(spacing: 10) {
-                // 原图
+                // Original image
                 VStack {
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                    Text("原始")
+                    Text("Original")
                         .font(.caption)
                 }
 
-                // 模拟视图
+                // Simulation views
                 ForEach(simulationModes, id: \.self) { mode in
                     VStack {
                         image
@@ -980,7 +980,7 @@ struct ColorBlindSimulationView: View {
     }
 
     private func colorMatrixShader(for mode: AccessibilitySettings.ColorBlindMode) -> Shader {
-        // 返回颜色矩阵着色器
+        // Return color matrix shader
         return Shader(function: .init(library: .default, name: ""), arguments: [])
     }
 }

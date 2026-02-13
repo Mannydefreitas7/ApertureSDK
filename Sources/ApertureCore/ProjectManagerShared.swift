@@ -1,9 +1,9 @@
 import Foundation
 import AVFoundation
 
-// MARK: - 可序列化的项目模型
+// MARK: - Serializable Project Models
 
-/// 可序列化的项目数据
+/// Serializable project data
 struct ProjectData: Codable {
     var id: UUID
     var name: String
@@ -15,7 +15,7 @@ struct ProjectData: Codable {
     var transitions: [TransitionData]
     var globalFilter: FilterData?
 
-    /// 版本号（用于迁移）
+    /// Version number (for migration)
     var version: Int = 1
 
     init(from project: Project) {
@@ -31,7 +31,7 @@ struct ProjectData: Codable {
     }
 }
 
-/// 可序列化的轨道数据
+/// Serializable track data
 struct TrackData: Codable {
     var id: UUID
     var name: String
@@ -54,10 +54,10 @@ struct TrackData: Codable {
     }
 }
 
-/// 可序列化的片段数据
+/// Serializable clip data
 struct ClipData: Codable {
     var id: UUID
-    var sourceURL: String  // 相对路径或绝对路径
+    var sourceURL: String  // Relative or absolute path
     var sourceTimeRangeStart: Double
     var sourceTimeRangeDuration: Double
     var startTime: Double
@@ -83,7 +83,7 @@ struct ClipData: Codable {
     }
 }
 
-/// 可序列化的变换数据
+/// Serializable transform data
 struct ClipTransformData: Codable {
     var positionX: CGFloat
     var positionY: CGFloat
@@ -115,7 +115,7 @@ struct ClipTransformData: Codable {
     }
 }
 
-/// 可序列化的滤镜数据
+/// Serializable filter data
 struct FilterData: Codable {
     var id: UUID
     var type: String
@@ -170,7 +170,7 @@ struct FilterData: Codable {
     }
 }
 
-/// 可序列化的文字覆盖层数据
+/// Serializable text overlay data
 struct TextOverlayData: Codable {
     var id: UUID
     var text: String
@@ -201,7 +201,7 @@ struct TextOverlayData: Codable {
     }
 }
 
-/// 可序列化的转场数据
+/// Serializable transition data
 struct TransitionData: Codable {
     var id: UUID
     var type: String
@@ -218,15 +218,15 @@ struct TransitionData: Codable {
     }
 }
 
-// MARK: - 项目管理器
+// MARK: - Project Manager
 
-/// 项目管理器
+/// Project manager
 class ProjectManagerShared: ObservableObject {
 
-    /// 项目文件扩展名
+    /// Project file extension
     static let projectExtension = "vproj"
 
-    /// 项目目录
+    /// Projects directory
     static var projectsDirectory: URL {
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let projectsPath = documentsPath.appendingPathComponent("VideoEditor Projects")
@@ -238,33 +238,33 @@ class ProjectManagerShared: ObservableObject {
         return projectsPath
     }
 
-    /// 最近项目
+    /// Recent projects
     @Published var recentProjects: [ProjectInfo] = []
 
-    /// 自动保存定时器
+    /// Auto-save timer
     private var autoSaveTimer: Timer?
 
-    /// 当前项目路径
+    /// Current project path
     private var currentProjectURL: URL?
 
     init() {
         loadRecentProjects()
     }
 
-    // MARK: - 保存
+    // MARK: - Save
 
-    /// 保存项目
+    /// Save project
     func save(project: Project, to url: URL? = nil) throws {
         let targetURL = url ?? currentProjectURL ?? generateProjectURL(for: project)
         currentProjectURL = targetURL
 
-        // 创建项目目录
+        // Create project directory
         let projectDir = targetURL.deletingLastPathComponent()
         if !FileManager.default.fileExists(atPath: projectDir.path) {
             try FileManager.default.createDirectory(at: projectDir, withIntermediateDirectories: true)
         }
 
-        // 序列化项目
+        // Serialize project
         let projectData = ProjectData(from: project)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -273,25 +273,25 @@ class ProjectManagerShared: ObservableObject {
         let data = try encoder.encode(projectData)
         try data.write(to: targetURL)
 
-        // 更新最近项目
+        // Update recent projects
         addToRecentProjects(ProjectInfo(
             url: targetURL,
             name: project.name,
             modifiedAt: Date()
         ))
 
-        print("项目已保存到: \(targetURL.path)")
+        print("Project saved to: \(targetURL.path)")
     }
 
-    /// 生成项目 URL
+    /// Generate project URL
     private func generateProjectURL(for project: Project) -> URL {
         let fileName = "\(project.name)_\(project.id.uuidString.prefix(8)).\(Self.projectExtension)"
         return Self.projectsDirectory.appendingPathComponent(fileName)
     }
 
-    // MARK: - 加载
+    // MARK: - Load
 
-    /// 加载项目
+    /// Load project
     func load(from url: URL) async throws -> Project {
         let data = try Data(contentsOf: url)
         let decoder = JSONDecoder()
@@ -299,7 +299,7 @@ class ProjectManagerShared: ObservableObject {
 
         let projectData = try decoder.decode(ProjectData.self, from: data)
 
-        // 重建项目
+        // Rebuild project
         var project = Project(
             id: projectData.id,
             name: projectData.name,
@@ -308,7 +308,7 @@ class ProjectManagerShared: ObservableObject {
         project.createdAt = projectData.createdAt
         project.modifiedAt = projectData.modifiedAt
 
-        // 重建轨道
+        // Rebuild tracks
         project.tracks = []
         for trackData in projectData.tracks {
             var track = Track(
@@ -321,13 +321,13 @@ class ProjectManagerShared: ObservableObject {
             track.isVisible = trackData.isVisible
             track.volume = trackData.volume
 
-            // 重建片段
+            // Rebuild clips
             for clipData in trackData.clips {
                 let sourceURL = URL(fileURLWithPath: clipData.sourceURL)
 
-                // 检查文件是否存在
+                // Check if file exists
                 guard FileManager.default.fileExists(atPath: sourceURL.path) else {
-                    print("警告：找不到媒体文件 \(sourceURL.path)")
+                    print("Warning: Cannot find media file \(sourceURL.path)")
                     continue
                 }
 
@@ -356,7 +356,7 @@ class ProjectManagerShared: ObservableObject {
             project.tracks.append(track)
         }
 
-        // 重建转场
+        // Rebuild transitions
         project.transitions = projectData.transitions.map { data in
             Transition(
                 id: data.id,
@@ -367,12 +367,12 @@ class ProjectManagerShared: ObservableObject {
             )
         }
 
-        // 重建全局滤镜
+        // Rebuild global filter
         project.globalFilter = projectData.globalFilter?.toVideoEffects()
 
         currentProjectURL = url
 
-        // 更新最近项目
+        // Update recent projects
         addToRecentProjects(ProjectInfo(
             url: url,
             name: project.name,
@@ -382,9 +382,9 @@ class ProjectManagerShared: ObservableObject {
         return project
     }
 
-    // MARK: - 自动保存
+    // MARK: - Auto Save
 
-    /// 启用自动保存
+    /// Enable auto save
     func enableAutoSave(project: Project, interval: TimeInterval = 60) {
         autoSaveTimer?.invalidate()
         autoSaveTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
@@ -394,15 +394,15 @@ class ProjectManagerShared: ObservableObject {
         }
     }
 
-    /// 禁用自动保存
+    /// Disable auto save
     func disableAutoSave() {
         autoSaveTimer?.invalidate()
         autoSaveTimer = nil
     }
 
-    // MARK: - 最近项目
+    // MARK: - Recent Projects
 
-    /// 项目信息
+    /// Project information
     struct ProjectInfo: Codable, Identifiable {
         var id: String { url.path }
         var url: URL
@@ -411,7 +411,7 @@ class ProjectManagerShared: ObservableObject {
         var thumbnailPath: String?
     }
 
-    /// 加载最近项目列表
+    /// Load recent projects list
     private func loadRecentProjects() {
         let recentProjectsURL = Self.projectsDirectory.appendingPathComponent(".recent_projects.json")
 
@@ -420,11 +420,11 @@ class ProjectManagerShared: ObservableObject {
             return
         }
 
-        // 过滤掉不存在的项目
+        // Filter out non-existent projects
         recentProjects = projects.filter { FileManager.default.fileExists(atPath: $0.url.path) }
     }
 
-    /// 保存最近项目列表
+    /// Save recent projects list
     private func saveRecentProjects() {
         let recentProjectsURL = Self.projectsDirectory.appendingPathComponent(".recent_projects.json")
 
@@ -433,12 +433,12 @@ class ProjectManagerShared: ObservableObject {
         }
     }
 
-    /// 添加到最近项目
+    /// Add to recent projects
     private func addToRecentProjects(_ info: ProjectInfo) {
         recentProjects.removeAll { $0.url == info.url }
         recentProjects.insert(info, at: 0)
 
-        // 保留最近 10 个项目
+        // Keep the most recent 10 projects
         if recentProjects.count > 10 {
             recentProjects = Array(recentProjects.prefix(10))
         }
@@ -446,21 +446,21 @@ class ProjectManagerShared: ObservableObject {
         saveRecentProjects()
     }
 
-    /// 从最近项目中移除
+    /// Remove from recent projects
     func removeFromRecentProjects(url: URL) {
         recentProjects.removeAll { $0.url == url }
         saveRecentProjects()
     }
 
-    /// 清空最近项目
+    /// Clear recent projects
     func clearRecentProjects() {
         recentProjects = []
         saveRecentProjects()
     }
 
-    // MARK: - 项目模板
+    // MARK: - Project Templates
 
-    /// 项目模板
+    /// Project template
     struct ProjectTemplate: Identifiable {
         let id = UUID()
         var name: String
@@ -469,49 +469,49 @@ class ProjectManagerShared: ObservableObject {
         var icon: String
     }
 
-    /// 内置模板
+    /// Built-in templates
     static let builtInTemplates: [ProjectTemplate] = [
         ProjectTemplate(
-            name: "空白项目",
-            description: "从零开始创建",
+            name: "Blank Project",
+            description: "Start creating video from scratch",
             settings: ProjectSettings(),
             icon: "doc"
         ),
         ProjectTemplate(
-            name: "抖音/TikTok",
-            description: "9:16 竖屏，适合短视频",
+            name: "TikTok/Short Video",
+            description: "9:16 portrait, perfect for short videos",
             settings: ProjectSettings(resolution: .vertical1080x1920, frameRate: 30),
             icon: "iphone"
         ),
         ProjectTemplate(
             name: "YouTube",
-            description: "16:9 横屏，1080p",
+            description: "16:9 landscape, 1080p",
             settings: ProjectSettings(resolution: .hd1080p, frameRate: 30),
             icon: "play.rectangle"
         ),
         ProjectTemplate(
-            name: "4K 电影",
-            description: "4K 分辨率，24fps 电影感",
+            name: "4K Cinema",
+            description: "4K resolution, 24fps cinematic",
             settings: ProjectSettings(resolution: .uhd4k, frameRate: 24),
             icon: "film"
         ),
         ProjectTemplate(
             name: "Instagram Reels",
-            description: "9:16 竖屏，适合 Reels",
+            description: "9:16 portrait, perfect for Reels",
             settings: ProjectSettings(resolution: .vertical1080x1920, frameRate: 30),
             icon: "camera"
         )
     ]
 
-    /// 从模板创建项目
+    /// Create project from template
     func createFromTemplate(_ template: ProjectTemplate, name: String) -> Project {
         var project = Project(name: name, settings: template.settings)
         return project
     }
 
-    // MARK: - 项目备份
+    // MARK: - Project Backup
 
-    /// 创建项目备份
+    /// Create project backup
     func createBackup(of project: Project) throws -> URL {
         let backupDir = Self.projectsDirectory.appendingPathComponent("Backups")
         if !FileManager.default.fileExists(atPath: backupDir.path) {
@@ -530,7 +530,7 @@ class ProjectManagerShared: ObservableObject {
         return backupURL
     }
 
-    /// 获取项目的所有备份
+    /// Get all backups for project
     func getBackups(for projectName: String) -> [URL] {
         let backupDir = Self.projectsDirectory.appendingPathComponent("Backups")
 
@@ -552,7 +552,7 @@ class ProjectManagerShared: ObservableObject {
     }
 }
 
-/// 项目错误
+/// Project errors
 enum ProjectError: LocalizedError {
     case invalidProjectBundle
     case mediaNotFound
@@ -561,10 +561,10 @@ enum ProjectError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .invalidProjectBundle: return "无效的项目包"
-        case .mediaNotFound: return "找不到媒体文件"
-        case .saveFailed: return "保存失败"
-        case .loadFailed: return "加载失败"
+        case .invalidProjectBundle: return "Invalid project bundle"
+        case .mediaNotFound: return "Media file not found"
+        case .saveFailed: return "Save failed"
+        case .loadFailed: return "Load failed"
         }
     }
 }

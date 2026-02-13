@@ -2,7 +2,7 @@ import Foundation
 import AVFoundation
 import SwiftUI
 
-// MARK: - 滤镜预设
+// MARK: - Filter Presets
 
 struct FilterPreset: Identifiable, Codable {
     let id: UUID
@@ -18,7 +18,7 @@ struct FilterPreset: Identifiable, Codable {
     }
 }
 
-// MARK: - 视频模板
+// MARK: - Video Templates
 
 struct VideoTemplate: Identifiable, Codable {
     let id: UUID
@@ -97,29 +97,29 @@ struct VideoTemplate: Identifiable, Codable {
 }
 
 enum TemplateCategory: String, Codable, CaseIterable {
-    case intro = "开场"
-    case outro = "片尾"
+    case intro = "Intro"
+    case outro = "Outro"
     case vlog = "Vlog"
-    case travel = "旅行"
-    case food = "美食"
-    case fitness = "健身"
-    case wedding = "婚礼"
-    case birthday = "生日"
-    case holiday = "节日"
-    case christmas = "圣诞"
-    case newYear = "新年"
-    case valentines = "情人节"
-    case ecommerce = "电商"
-    case education = "教育"
-    case corporate = "商务"
-    case social = "社交"
-    case gaming = "游戏"
-    case music = "音乐"
-    case sports = "运动"
-    case news = "新闻"
-    case slideshow = "相册"
-    case promo = "宣传"
-    case custom = "自定义"
+    case travel = "Travel"
+    case food = "Food"
+    case fitness = "Fitness"
+    case wedding = "Wedding"
+    case birthday = "Birthday"
+    case holiday = "Holiday"
+    case christmas = "Christmas"
+    case newYear = "New Year"
+    case valentines = "Valentine's Day"
+    case ecommerce = "E-commerce"
+    case education = "Education"
+    case corporate = "Corporate"
+    case social = "Social"
+    case gaming = "Gaming"
+    case music = "Music"
+    case sports = "Sports"
+    case news = "News"
+    case slideshow = "Slideshow"
+    case promo = "Promo"
+    case custom = "Custom"
 
     var displayName: String { rawValue }
 
@@ -153,7 +153,7 @@ struct TemplatePlaceholder: Identifiable, Codable {
     let id: UUID
     var type: PlaceholderType
     var label: String
-    var position: CGRect  // 归一化坐标
+    var position: CGRect  // Normalized coordinates
     var startTime: Double
     var duration: Double
     var animation: TextAnimation?
@@ -194,7 +194,7 @@ struct TemplateTrack: Codable {
 
 struct TemplateClip: Codable {
     var placeholderId: UUID?
-    var assetURL: URL?  // 内置资源
+    var assetURL: URL?  // Built-in assets
     var startTime: Double
     var duration: Double
     var effects: [String]
@@ -203,7 +203,7 @@ struct TemplateClip: Codable {
 struct TemplateTransition: Codable {
     var type: TransitionType
     var duration: Double
-    var position: Double  // 在时间线上的位置
+    var position: Double  // Position on timeline
 }
 
 struct TemplateMusic: Codable {
@@ -214,7 +214,7 @@ struct TemplateMusic: Codable {
     var fadeOut: Double
 }
 
-// MARK: - 模板管理器
+// MARK: - Template Manager
 
 class TemplateManager: ObservableObject {
     static let shared = TemplateManager()
@@ -232,105 +232,105 @@ class TemplateManager: ObservableObject {
 
     private func loadBuiltInTemplates() {
         templates = [
-            // 开场模板
+            // Intro template
             VideoTemplate(
-                name: "动感开场",
+                name: "Dynamic Intro",
                 category: .intro,
-                description: "充满活力的开场动画",
+                description: "Energetic intro animation",
                 duration: 5,
                 placeholders: [
-                    TemplatePlaceholder(type: .text, label: "标题", position: CGRect(x: 0.1, y: 0.4, width: 0.8, height: 0.2)),
+                    TemplatePlaceholder(type: .text, label: "Title", position: CGRect(x: 0.1, y: 0.4, width: 0.8, height: 0.2)),
                     TemplatePlaceholder(type: .logo, label: "Logo", position: CGRect(x: 0.35, y: 0.65, width: 0.3, height: 0.2))
                 ],
-                tags: ["开场", "动感", "现代"]
+                tags: ["Intro", "Dynamic", "Modern"]
             ),
 
-            // 片尾模板
+            // Outro template
             VideoTemplate(
-                name: "简洁片尾",
+                name: "Clean Outro",
                 category: .outro,
-                description: "简洁的结尾卡片",
+                description: "Simple ending card",
                 duration: 5,
                 placeholders: [
-                    TemplatePlaceholder(type: .text, label: "感谢观看", position: CGRect(x: 0.1, y: 0.3, width: 0.8, height: 0.15)),
-                    TemplatePlaceholder(type: .text, label: "订阅频道", position: CGRect(x: 0.1, y: 0.5, width: 0.8, height: 0.1)),
+                    TemplatePlaceholder(type: .text, label: "Thanks for Watching", position: CGRect(x: 0.1, y: 0.3, width: 0.8, height: 0.15)),
+                    TemplatePlaceholder(type: .text, label: "Subscribe", position: CGRect(x: 0.1, y: 0.5, width: 0.8, height: 0.1)),
                     TemplatePlaceholder(type: .logo, label: "Logo", position: CGRect(x: 0.4, y: 0.7, width: 0.2, height: 0.15))
                 ],
-                tags: ["片尾", "简洁", "订阅"]
+                tags: ["Outro", "Clean", "Subscribe"]
             ),
 
-            // Vlog模板
+            // Vlog template
             VideoTemplate(
-                name: "日常Vlog",
+                name: "Daily Vlog",
                 category: .vlog,
-                description: "适合日常记录的Vlog模板",
+                description: "Perfect for daily life vlogs",
                 duration: 30,
                 aspectRatio: .ratio9x16,
                 placeholders: [
-                    TemplatePlaceholder(type: .video, label: "视频1", position: CGRect(x: 0, y: 0, width: 1, height: 0.5), duration: 5),
-                    TemplatePlaceholder(type: .video, label: "视频2", position: CGRect(x: 0, y: 0, width: 1, height: 0.5), startTime: 5, duration: 5),
-                    TemplatePlaceholder(type: .video, label: "视频3", position: CGRect(x: 0, y: 0, width: 1, height: 0.5), startTime: 10, duration: 5),
-                    TemplatePlaceholder(type: .text, label: "日期", position: CGRect(x: 0.05, y: 0.85, width: 0.3, height: 0.05))
+                    TemplatePlaceholder(type: .video, label: "Video 1", position: CGRect(x: 0, y: 0, width: 1, height: 0.5), duration: 5),
+                    TemplatePlaceholder(type: .video, label: "Video 2", position: CGRect(x: 0, y: 0, width: 1, height: 0.5), startTime: 5, duration: 5),
+                    TemplatePlaceholder(type: .video, label: "Video 3", position: CGRect(x: 0, y: 0, width: 1, height: 0.5), startTime: 10, duration: 5),
+                    TemplatePlaceholder(type: .text, label: "Date", position: CGRect(x: 0.05, y: 0.85, width: 0.3, height: 0.05))
                 ],
-                tags: ["Vlog", "日常", "竖屏"]
+                tags: ["Vlog", "Daily", "Portrait"]
             ),
 
-            // 旅行模板
+            // Travel template
             VideoTemplate(
-                name: "旅行记忆",
+                name: "Travel Memories",
                 category: .travel,
-                description: "记录旅途中的美好时刻",
+                description: "Capture beautiful moments from your journey",
                 duration: 60,
                 placeholders: [
-                    TemplatePlaceholder(type: .text, label: "目的地", position: CGRect(x: 0.1, y: 0.4, width: 0.8, height: 0.2)),
-                    TemplatePlaceholder(type: .image, label: "封面", position: CGRect(x: 0, y: 0, width: 1, height: 1), duration: 3),
-                    TemplatePlaceholder(type: .video, label: "精彩片段", position: CGRect(x: 0, y: 0, width: 1, height: 1), startTime: 3)
+                    TemplatePlaceholder(type: .text, label: "Destination", position: CGRect(x: 0.1, y: 0.4, width: 0.8, height: 0.2)),
+                    TemplatePlaceholder(type: .image, label: "Cover", position: CGRect(x: 0, y: 0, width: 1, height: 1), duration: 3),
+                    TemplatePlaceholder(type: .video, label: "Highlights", position: CGRect(x: 0, y: 0, width: 1, height: 1), startTime: 3)
                 ],
-                tags: ["旅行", "风景", "记忆"]
+                tags: ["Travel", "Scenic", "Memories"]
             ),
 
-            // 节日模板
+            // Holiday template
             VideoTemplate(
-                name: "新年祝福",
+                name: "New Year Wishes",
                 category: .newYear,
-                description: "新年贺卡模板",
+                description: "New Year greeting card template",
                 duration: 15,
                 placeholders: [
-                    TemplatePlaceholder(type: .text, label: "新年快乐", position: CGRect(x: 0.1, y: 0.3, width: 0.8, height: 0.2)),
-                    TemplatePlaceholder(type: .text, label: "年份", position: CGRect(x: 0.3, y: 0.5, width: 0.4, height: 0.15)),
-                    TemplatePlaceholder(type: .image, label: "照片", position: CGRect(x: 0.25, y: 0.65, width: 0.5, height: 0.25))
+                    TemplatePlaceholder(type: .text, label: "Happy New Year", position: CGRect(x: 0.1, y: 0.3, width: 0.8, height: 0.2)),
+                    TemplatePlaceholder(type: .text, label: "Year", position: CGRect(x: 0.3, y: 0.5, width: 0.4, height: 0.15)),
+                    TemplatePlaceholder(type: .image, label: "Photo", position: CGRect(x: 0.25, y: 0.65, width: 0.5, height: 0.25))
                 ],
-                tags: ["新年", "祝福", "节日"]
+                tags: ["New Year", "Wishes", "Holiday"]
             ),
 
-            // 电商模板
+            // E-commerce template
             VideoTemplate(
-                name: "产品展示",
+                name: "Product Showcase",
                 category: .ecommerce,
-                description: "产品宣传视频模板",
+                description: "Product promotional video template",
                 duration: 15,
                 aspectRatio: .ratio1x1,
                 placeholders: [
-                    TemplatePlaceholder(type: .image, label: "产品图", position: CGRect(x: 0.1, y: 0.1, width: 0.8, height: 0.6)),
-                    TemplatePlaceholder(type: .text, label: "产品名称", position: CGRect(x: 0.1, y: 0.72, width: 0.8, height: 0.1)),
-                    TemplatePlaceholder(type: .text, label: "价格", position: CGRect(x: 0.1, y: 0.84, width: 0.4, height: 0.08)),
-                    TemplatePlaceholder(type: .logo, label: "店铺Logo", position: CGRect(x: 0.7, y: 0.84, width: 0.2, height: 0.1))
+                    TemplatePlaceholder(type: .image, label: "Product Image", position: CGRect(x: 0.1, y: 0.1, width: 0.8, height: 0.6)),
+                    TemplatePlaceholder(type: .text, label: "Product Name", position: CGRect(x: 0.1, y: 0.72, width: 0.8, height: 0.1)),
+                    TemplatePlaceholder(type: .text, label: "Price", position: CGRect(x: 0.1, y: 0.84, width: 0.4, height: 0.08)),
+                    TemplatePlaceholder(type: .logo, label: "Store Logo", position: CGRect(x: 0.7, y: 0.84, width: 0.2, height: 0.1))
                 ],
-                tags: ["电商", "产品", "促销"]
+                tags: ["E-commerce", "Product", "Promotion"]
             ),
 
-            // 婚礼模板
+            // Wedding template
             VideoTemplate(
-                name: "浪漫婚礼",
+                name: "Romantic Wedding",
                 category: .wedding,
-                description: "记录人生最美好的时刻",
+                description: "Capture life's most beautiful moments",
                 duration: 120,
                 placeholders: [
-                    TemplatePlaceholder(type: .text, label: "新人姓名", position: CGRect(x: 0.1, y: 0.4, width: 0.8, height: 0.15)),
-                    TemplatePlaceholder(type: .text, label: "婚礼日期", position: CGRect(x: 0.2, y: 0.55, width: 0.6, height: 0.08)),
-                    TemplatePlaceholder(type: .video, label: "婚礼视频", position: CGRect(x: 0, y: 0, width: 1, height: 1))
+                    TemplatePlaceholder(type: .text, label: "Couple Names", position: CGRect(x: 0.1, y: 0.4, width: 0.8, height: 0.15)),
+                    TemplatePlaceholder(type: .text, label: "Wedding Date", position: CGRect(x: 0.2, y: 0.55, width: 0.6, height: 0.08)),
+                    TemplatePlaceholder(type: .video, label: "Wedding Video", position: CGRect(x: 0, y: 0, width: 1, height: 1))
                 ],
-                tags: ["婚礼", "浪漫", "爱情"],
+                tags: ["Wedding", "Romantic", "Love"],
                 isPremium: true
             ),
         ]
@@ -338,7 +338,7 @@ class TemplateManager: ObservableObject {
         featuredTemplates = Array(templates.prefix(5))
     }
 
-    // 搜索模板
+    // Search templates
     func search(_ query: String) -> [VideoTemplate] {
         guard !query.isEmpty else { return templates }
 
@@ -349,12 +349,12 @@ class TemplateManager: ObservableObject {
         }
     }
 
-    // 按分类筛选
+    // Filter by category
     func filterByCategory(_ category: TemplateCategory) -> [VideoTemplate] {
         templates.filter { $0.category == category }
     }
 
-    // 收藏/取消收藏
+    // Add/remove from favorites
     func toggleFavorite(_ template: VideoTemplate) {
         if favoriteTemplateIds.contains(template.id) {
             favoriteTemplateIds.remove(template.id)
@@ -363,16 +363,16 @@ class TemplateManager: ObservableObject {
         }
     }
 
-    // 获取收藏的模板
+    // Get favorite templates
     var favoriteTemplates: [VideoTemplate] {
         templates.filter { favoriteTemplateIds.contains($0.id) }
     }
 
-    // 应用模板
+    // Apply template
     func applyTemplate(_ template: VideoTemplate, with assets: [UUID: URL]) async throws -> Project {
-        var project = Project(name: "从模板创建 - \(template.name)")
+        var project = Project(name: "Created from Template - \(template.name)")
 
-        // 设置分辨率根据模板宽高比
+        // Set resolution based on template aspect ratio
         switch template.aspectRatio {
         case .ratio16x9:
             project.settings.resolution = .hd1080p
@@ -385,14 +385,14 @@ class TemplateManager: ObservableObject {
         return project
     }
 
-    // 保存自定义模板
+    // Save custom template
     func saveAsTemplate(_ project: Project, name: String, category: TemplateCategory) -> VideoTemplate {
         let template = VideoTemplate(
             name: name,
             category: category,
             description: "",
             duration: CMTimeGetSeconds(project.duration),
-            author: "用户"
+            author: "User"
         )
 
         templates.append(template)

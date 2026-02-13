@@ -3,33 +3,33 @@ import AVFoundation
 import CoreImage
 import CoreImage.CIFilterBuiltins
 
-// MARK: - 画中画
+// MARK: - Picture in Picture
 
-/// 画中画配置
+/// Picture in picture configuration
 struct PictureInPicture: Identifiable, Equatable {
     let id: UUID
-    var overlayClipId: UUID  // 叠加的片段
+    var overlayClipId: UUID  // Overlay clip
 
-    /// 位置（归一化 0-1）
+    /// Position (normalized 0-1)
     var position: CGPoint = CGPoint(x: 0.8, y: 0.2)
 
-    /// 大小（相对于画面）
+    /// Size (relative to frame)
     var scale: CGFloat = 0.3
 
-    /// 边框
+    /// Border
     var borderWidth: CGFloat = 2
     var borderColor: CodableColor = CodableColor(.white)
 
-    /// 圆角
+    /// Corner radius
     var cornerRadius: CGFloat = 8
 
-    /// 阴影
+    /// Shadow
     var shadowEnabled: Bool = true
     var shadowColor: CodableColor = CodableColor(.black.withAlphaComponent(0.5))
-    var shadowOffset: CGSize = CGSize(width: 4, height: 4)
+    var shadowOffset: CGSize = CGSize(width: 2, height: 2)
     var shadowRadius: CGFloat = 8
 
-    /// 时间范围
+    /// Time range
     var timeRange: CMTimeRange
 
     init(
@@ -43,7 +43,7 @@ struct PictureInPicture: Identifiable, Equatable {
     }
 }
 
-/// 画中画位置预设
+/// Picture in picture position presets
 enum PiPPosition: String, CaseIterable {
 
 
@@ -78,37 +78,37 @@ enum PiPPosition: String, CaseIterable {
     }
 }
 
-// MARK: - 绿幕/色度键
+// MARK: - Green Screen/Chroma Key
 
-/// 色度键（绿幕）效果
+/// Chroma key (green screen) effect
 struct ChromaKey: Identifiable, Equatable {
     let id: UUID
 
-    /// 要移除的颜色
+    /// Color to remove
     var keyColor: CodableColor = CodableColor(.green)
 
-    /// 颜色容差
+    /// Color tolerance
     var tolerance: Float = 0.4
 
-    /// 边缘柔和度
+    /// Edge softness
     var softness: Float = 0.1
 
-    /// 溢色抑制
+    /// Spill suppression
     var spillSuppression: Float = 0.5
 
-    /// 是否启用
+    /// Whether enabled
     var isEnabled: Bool = true
 
     init(id: UUID = UUID()) {
         self.id = id
     }
 
-    /// 创建 CIFilter
+    /// Create CIFilter
     func makeCIFilter() -> CIFilter? {
-        // 使用 CIColorCube 实现色度键
+        // Use CIColorCube to implement chroma key
         let filter = CIFilter(name: "CIColorCube")
 
-        // 创建颜色查找表
+        // Create color lookup table
         let size = 64
         var cubeData = [Float](repeating: 0, count: size * size * size * 4)
 
@@ -125,14 +125,14 @@ struct ChromaKey: Identifiable, Equatable {
                     let gf = Float(g) / Float(size - 1)
                     let bf = Float(b) / Float(size - 1)
 
-                    // 计算与键色的距离
+                    // Calculate distance to key color
                     let distance = sqrt(
                         pow(rf - keyR, 2) +
                         pow(gf - keyG, 2) +
                         pow(bf - keyB, 2)
                     )
 
-                    // 计算 alpha
+                    // Calculate alpha
                     var alpha: Float
                     if distance < tolerance {
                         alpha = 0
@@ -142,7 +142,7 @@ struct ChromaKey: Identifiable, Equatable {
                         alpha = 1
                     }
 
-                    // 预乘 alpha
+                    // Premultiplied alpha
                     cubeData[index] = rf * alpha
                     cubeData[index + 1] = gf * alpha
                     cubeData[index + 2] = bf * alpha
@@ -159,9 +159,9 @@ struct ChromaKey: Identifiable, Equatable {
     }
 }
 
-// MARK: - 模糊效果
+// MARK: - Blur Effects
 
-/// 模糊效果
+/// Blur effect
 struct BlurEffect: Identifiable, Equatable {
     let id: UUID
     var type: BlurType = .gaussian
@@ -173,13 +173,13 @@ struct BlurEffect: Identifiable, Equatable {
         self.id = id
     }
 
-    /// 模糊类型
+    /// Blur type
     enum BlurType: String, CaseIterable {
-        case gaussian = "高斯模糊"
-        case motion = "运动模糊"
-        case zoom = "缩放模糊"
-        case box = "方框模糊"
-        case disc = "圆盘模糊"
+        case gaussian = "Gaussian Blur"
+        case motion = "Motion Blur"
+        case zoom = "Zoom Blur"
+        case box = "Box Blur"
+        case disc = "Disc Blur"
 
         func makeCIFilter(radius: CGFloat) -> CIFilter? {
             switch self {
@@ -208,17 +208,17 @@ struct BlurEffect: Identifiable, Equatable {
         }
     }
 
-    /// 模糊区域
+    /// Blur region
     enum BlurRegion: Equatable {
-        case fullFrame           // 全画面
-        case rectangle(CGRect)   // 矩形区域
-        case circle(center: CGPoint, radius: CGFloat)  // 圆形区域
-        case faceTracking        // 人脸追踪
-        case custom(mask: String) // 自定义蒙版
+        case fullFrame           // Full frame
+        case rectangle(CGRect)   // Rectangle area
+        case circle(center: CGPoint, radius: CGFloat)  // Circle area
+        case faceTracking        // Face tracking
+        case custom(mask: String) // Custom mask
     }
 }
 
-/// 马赛克效果
+/// Mosaic effect
 struct MosaicEffect: Identifiable, Equatable {
     let id: UUID
     var blockSize: CGFloat = 20
@@ -230,9 +230,9 @@ struct MosaicEffect: Identifiable, Equatable {
     }
 
     enum MosaicShape: String, CaseIterable {
-        case square = "方形"
-        case hexagon = "六边形"
-        case circle = "圆形"
+        case square = "Square"
+        case hexagon = "Hexagon"
+        case circle = "Circle"
     }
 
     func makeCIFilter() -> CIFilter? {
@@ -242,9 +242,9 @@ struct MosaicEffect: Identifiable, Equatable {
     }
 }
 
-// MARK: - 速度曲线
+// MARK: - Speed Curves
 
-/// 速度曲线
+/// Speed curve
 struct SpeedCurve: Identifiable, Equatable {
     let id: UUID
     var keyframes: [SpeedKeyframe] = []
@@ -253,11 +253,11 @@ struct SpeedCurve: Identifiable, Equatable {
         self.id = id
     }
 
-    /// 速度关键帧
+    /// Speed keyframe
     struct SpeedKeyframe: Identifiable, Equatable {
         let id: UUID
-        var time: CGFloat  // 归一化时间 0-1
-        var speed: CGFloat // 速度倍率
+        var time: CGFloat  // Normalized time 0-1
+        var speed: CGFloat // Speed multiplier
 
         init(id: UUID = UUID(), time: CGFloat, speed: CGFloat) {
             self.id = id
@@ -266,15 +266,15 @@ struct SpeedCurve: Identifiable, Equatable {
         }
     }
 
-    /// 预设速度曲线
+    /// Preset speed curves
     enum Preset: String, CaseIterable {
-        case normal = "正常"
-        case slowMotion = "慢动作"
-        case fastMotion = "快动作"
-        case rampUp = "加速"
-        case rampDown = "减速"
-        case pulse = "脉冲"
-        case reverse = "倒放"
+        case normal = "Normal"
+        case slowMotion = "Slow Motion"
+        case fastMotion = "Fast Motion"
+        case rampUp = "Ramp Up"
+        case rampDown = "Ramp Down"
+        case pulse = "Pulse"
+        case reverse = "Reverse"
 
         func apply(to curve: inout SpeedCurve) {
             curve.keyframes.removeAll()
@@ -322,14 +322,14 @@ struct SpeedCurve: Identifiable, Equatable {
         }
     }
 
-    /// 获取指定进度的速度
+    /// Get speed at specified progress
     func speed(at progress: CGFloat) -> CGFloat {
         guard !keyframes.isEmpty else { return 1 }
         guard keyframes.count > 1 else { return keyframes[0].speed }
 
         let sorted = keyframes.sorted { $0.time < $1.time }
 
-        // 查找前后关键帧
+        // Find surrounding keyframes
         var prev = sorted[0]
         var next = sorted[sorted.count - 1]
 
@@ -341,7 +341,7 @@ struct SpeedCurve: Identifiable, Equatable {
             }
         }
 
-        // 线性插值
+        // Linear interpolation
         if next.time == prev.time { return prev.speed }
 
         let t = (progress - prev.time) / (next.time - prev.time)
@@ -349,13 +349,13 @@ struct SpeedCurve: Identifiable, Equatable {
     }
 }
 
-// MARK: - 分屏效果
+// MARK: - Split Screen Effects
 
-/// 分屏效果
+/// Split screen effect
 struct SplitScreen: Identifiable, Equatable {
     let id: UUID
     var layout: SplitLayout
-    var clips: [UUID]  // 参与分屏的片段 ID
+    var clips: [UUID]  // Clip IDs participating in split screen
     var borderWidth: CGFloat = 2
     var borderColor: CodableColor = CodableColor(.white)
 
@@ -365,14 +365,14 @@ struct SplitScreen: Identifiable, Equatable {
         self.clips = clips
     }
 
-    /// 分屏布局
+    /// Split screen layout
     enum SplitLayout: String, CaseIterable {
-        case horizontal2 = "左右分屏"
-        case vertical2 = "上下分屏"
-        case grid4 = "四宫格"
-        case grid9 = "九宫格"
-        case pip = "画中画"
-        case diagonal = "斜分屏"
+        case horizontal2 = "Left-Right Split"
+        case vertical2 = "Top-Bottom Split"
+        case grid4 = "Four Grid"
+        case grid9 = "Nine Grid"
+        case pip = "Picture in Picture"
+        case diagonal = "Diagonal Split"
 
         var clipCount: Int {
             switch self {
@@ -382,7 +382,7 @@ struct SplitScreen: Identifiable, Equatable {
             }
         }
 
-        /// 获取每个片段的区域
+        /// Get region for each clip
         func regions(in size: CGSize) -> [CGRect] {
             switch self {
             case .horizontal2:
@@ -429,9 +429,9 @@ struct SplitScreen: Identifiable, Equatable {
     }
 }
 
-// MARK: - LUT (查找表)
+// MARK: - LUT (Lookup Table)
 
-/// LUT 调色
+/// LUT color grading
 struct LUTFilter: Identifiable, Equatable {
     let id: UUID
     var name: String
@@ -443,23 +443,23 @@ struct LUTFilter: Identifiable, Equatable {
         self.name = name
     }
 
-    /// 内置 LUT 预设
+    /// Built-in LUT presets
     enum Preset: String, CaseIterable {
-        case cinematic = "电影感"
-        case vintage = "复古胶片"
-        case teal_orange = "青橙"
-        case bleach = "漂白"
-        case noir = "黑色电影"
-        case vibrant = "鲜艳"
-        case muted = "柔和"
-        case warm_sunset = "暖色日落"
-        case cool_morning = "冷色清晨"
-        case cyberpunk = "赛博朋克"
+        case cinematic = "Cinematic"
+        case vintage = "Vintage Film"
+        case teal_orange = "Teal Orange"
+        case bleach = "Bleach Bypass"
+        case noir = "Film Noir"
+        case vibrant = "Vibrant"
+        case muted = "Muted"
+        case warm_sunset = "Warm Sunset"
+        case cool_morning = "Cool Morning"
+        case cyberpunk = "Cyberpunk"
 
         var displayName: String { rawValue }
     }
 
-    /// 从文件加载 LUT
+    /// Load LUT from file
     static func load(from url: URL) throws -> LUTFilter {
         let data = try Data(contentsOf: url)
         var lut = LUTFilter(name: url.deletingPathExtension().lastPathComponent)
@@ -467,7 +467,7 @@ struct LUTFilter: Identifiable, Equatable {
         return lut
     }
 
-    /// 创建 CIFilter
+    /// Create CIFilter
     func makeCIFilter() -> CIFilter? {
         guard let data = lutData else { return nil }
 
@@ -480,48 +480,48 @@ struct LUTFilter: Identifiable, Equatable {
     }
 }
 
-// MARK: - 画面稳定
+// MARK: - Video Stabilization
 
-/// 画面稳定配置
+/// Video stabilization configuration
 struct VideoStabilization: Equatable {
     var isEnabled: Bool = true
     var strength: Float = 0.5  // 0-1
     var smoothness: Float = 0.5
-    var cropRatio: Float = 0.1  // 裁剪比例
+    var cropRatio: Float = 0.1  // Crop ratio
 
-    /// 稳定模式
+    /// Stabilization mode
     enum Mode: String, CaseIterable {
-        case standard = "标准"
-        case cinematic = "电影级"
-        case auto = "自动"
+        case standard = "Standard"
+        case cinematic = "Cinematic"
+        case auto = "Auto"
     }
 
     var mode: Mode = .standard
 }
 
-// MARK: - 镜头校正
+// MARK: - Lens Correction
 
-/// 镜头畸变校正
+/// Lens distortion correction
 struct LensCorrection: Equatable {
     var isEnabled: Bool = false
 
-    /// 桶形/枕形畸变 (-1 to 1)
+    /// Barrel/Pincushion distortion (-1 to 1)
     var distortion: Float = 0
 
-    /// 色差校正
+    /// Chromatic aberration correction
     var chromaticAberration: Float = 0
 
-    /// 暗角校正
+    /// Vignette correction
     var vignetteCorrection: Float = 0
 
-    /// 预设镜头配置
+    /// Preset lens configurations
     enum LensPreset: String, CaseIterable {
-        case none = "无"
-        case gopro_wide = "GoPro 广角"
-        case iphone_wide = "iPhone 广角"
-        case iphone_ultra = "iPhone 超广角"
+        case none = "None"
+        case gopro_wide = "GoPro Wide"
+        case iphone_wide = "iPhone Wide"
+        case iphone_ultra = "iPhone Ultra Wide"
         case dji_mavic = "DJI Mavic"
-        case custom = "自定义"
+        case custom = "Custom"
     }
 
     var preset: LensPreset = .none
@@ -555,9 +555,9 @@ struct LensCorrection: Equatable {
     }
 }
 
-// MARK: - 视频效果处理器
+// MARK: - Video Effect Processor
 
-/// 视频效果处理器
+/// Video effect processor
 class VideoEffectProcessor {
     private let context: CIContext
 
@@ -569,7 +569,7 @@ class VideoEffectProcessor {
         }
     }
 
-    /// 应用色度键（绿幕）
+    /// Apply chroma key (green screen)
     func applyChromaKey(_ chromaKey: ChromaKey, to image: CIImage) -> CIImage {
         guard chromaKey.isEnabled,
               let filter = chromaKey.makeCIFilter() else {
@@ -580,7 +580,7 @@ class VideoEffectProcessor {
         return filter.outputImage ?? image
     }
 
-    /// 应用模糊效果
+    /// Apply blur effect
     func applyBlur(_ blur: BlurEffect, to image: CIImage) -> CIImage {
         guard let filter = blur.type.makeCIFilter(radius: blur.radius) else {
             return image
@@ -592,7 +592,7 @@ class VideoEffectProcessor {
             return image
         }
 
-        // 如果是区域模糊，需要合成
+        // If regional blur, need to composite
         switch blur.region {
         case .fullFrame:
             return blurredImage
@@ -608,15 +608,15 @@ class VideoEffectProcessor {
         }
     }
 
-    /// 创建矩形蒙版
+    /// Create rectangle mask
     private func rectangleMask(_ rect: CGRect, size: CGSize) -> CIImage {
         let color = CIColor(red: 1, green: 1, blue: 1)
         let colorImage = CIImage(color: color).cropped(to: CGRect(origin: .zero, size: size))
 
-        // 创建白色矩形
+        // Create white rectangle
         let whiteRect = CIImage(color: color).cropped(to: rect)
 
-        // 在黑色背景上放置白色矩形
+        // Place white rectangle on black background
         let blackImage = CIImage(color: CIColor.black).cropped(to: CGRect(origin: .zero, size: size))
 
         let compositeFilter = CIFilter.sourceOverCompositing()
@@ -626,7 +626,7 @@ class VideoEffectProcessor {
         return compositeFilter.outputImage ?? blackImage
     }
 
-    /// 创建圆形蒙版
+    /// Create circle mask
     private func circleMask(center: CGPoint, radius: CGFloat, size: CGSize) -> CIImage {
         let filter = CIFilter.radialGradient()
         filter.center = center
@@ -638,7 +638,7 @@ class VideoEffectProcessor {
         return filter.outputImage?.cropped(to: CGRect(origin: .zero, size: size)) ?? CIImage()
     }
 
-    /// 合成模糊
+    /// Composite blur
     private func compositeBlur(original: CIImage, blurred: CIImage, mask: CIImage) -> CIImage {
         let blendFilter = CIFilter.blendWithMask()
         blendFilter.inputImage = blurred
@@ -648,7 +648,7 @@ class VideoEffectProcessor {
         return blendFilter.outputImage ?? original
     }
 
-    /// 应用马赛克
+    /// Apply mosaic
     func applyMosaic(_ mosaic: MosaicEffect, to image: CIImage) -> CIImage {
         guard let filter = mosaic.makeCIFilter() else {
             return image

@@ -1,7 +1,7 @@
 #if canImport(AVFoundation)
 import Foundation
 import AVFoundation
-import VideoEditorCore
+import ApertureCore
 
 /// Builds AVComposition from Core project timeline
 @available(iOS 15.0, macOS 12.0, *)

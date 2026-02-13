@@ -1,7 +1,7 @@
 #if canImport(AVFoundation)
 import Foundation
 import CoreImage
-import VideoEditorCore
+import ApertureCore
 
 /// Renders effects defined in Core models using CoreImage filters
 @available(iOS 15.0, macOS 12.0, *)

@@ -1,5 +1,5 @@
 import Foundation
-import VideoEditorCore
+import ApertureCore
 
 /// Export codec type
 public enum ExportCodec: String, Codable, Sendable {

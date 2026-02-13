@@ -1,7 +1,7 @@
 #if canImport(CoreImage)
 import Foundation
 import CoreImage
-import VideoEditorCore
+import ApertureCore
 
 /// Loads and applies LUT (Look-Up Table) color grading files
 @available(iOS 15.0, macOS 12.0, *)

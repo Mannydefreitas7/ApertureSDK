@@ -1,7 +1,7 @@
 #if canImport(AVFoundation) && canImport(SwiftUI)
 import SwiftUI
-import VideoEditorCore
-import VideoEditorEngine
+import ApertureCore
+import ApertureEngine
 
 /// Main video editor view composing preview, timeline, and inspector
 @available(iOS 15.0, macOS 12.0, *)

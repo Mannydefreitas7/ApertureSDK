@@ -1,7 +1,7 @@
 #if canImport(AVFoundation)
 import Foundation
 import AVFoundation
-import VideoEditorCore
+import ApertureCore
 
 /// Loads and manages AVFoundation assets from Core model data
 @available(iOS 15.0, macOS 12.0, *)

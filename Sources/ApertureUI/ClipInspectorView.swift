@@ -1,6 +1,6 @@
 #if canImport(SwiftUI)
 import SwiftUI
-import VideoEditorCore
+import ApertureCore
 
 /// Inspector view for editing clip properties
 @available(iOS 15.0, macOS 12.0, *)

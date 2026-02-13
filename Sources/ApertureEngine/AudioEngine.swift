@@ -2,7 +2,7 @@
 import Foundation
 import AVFoundation
 import Accelerate
-import VideoEditorCore
+import ApertureCore
 
 /// Audio processing engine with advanced features
 @available(iOS 15.0, macOS 12.0, *)

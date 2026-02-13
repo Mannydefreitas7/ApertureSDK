@@ -1,8 +1,8 @@
 #if canImport(AVFoundation)
 import Foundation
 import AVFoundation
-import VideoEditorCore
-import VideoEditorEngine
+import ApertureCore
+import ApertureEngine
 
 /// Export progress information
 public struct ExportProgress: Sendable {

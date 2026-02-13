@@ -1,7 +1,7 @@
 #if canImport(AVFoundation) && canImport(SwiftUI)
 import SwiftUI
 import AVFoundation
-import VideoEditorCore
+import ApertureCore
 
 /// SwiftUI view for project timeline representation
 @available(iOS 15.0, macOS 12.0, *)

@@ -6,7 +6,7 @@
 //
 import SwiftUI
 
-class PathTextRenderer: ObservableObject {
+actor PathTextRenderer {
     static let shared = PathTextRenderer()
 
     private init() {}

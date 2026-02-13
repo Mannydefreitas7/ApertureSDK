@@ -6,7 +6,7 @@
 //
 import SwiftUI
 
-class HandwritingRenderer: ObservableObject {
+actor HandwritingRenderer {
     static let shared = HandwritingRenderer()
 
     private init() {}

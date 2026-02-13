@@ -462,22 +462,3 @@ actor TemplateManager {
         return template
     }
 }
-
-// MARK: - Codable Color Helper
-
-struct CodableColor: Codable {
-    let red: CGFloat
-    let green: CGFloat
-    let blue: CGFloat
-    let alpha: CGFloat
-
-    #if os(iOS) || os(macOS)
-    var color: PlatformColor? {
-        #if os(iOS)
-        return UIColor(red: red, green: green, blue: blue, alpha: alpha)
-        #else
-        return NSColor(red: red, green: green, blue: blue, alpha: alpha)
-        #endif
-    }
-    #endif
-}

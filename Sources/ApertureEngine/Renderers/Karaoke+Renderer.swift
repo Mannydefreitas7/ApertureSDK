@@ -6,7 +6,7 @@
 //
 import SwiftUI
 
-class KaraokeRenderer: ObservableObject {
+actor KaraokeRenderer {
     static let shared = KaraokeRenderer()
 
     @Published var currentSubtitle: KaraokeSubtitle?

@@ -1,36 +1,12 @@
 import Foundation
+import ApertureCore
 
 /// Represents a visual effect applied to a clip (data-only, Codable)
-public struct Effect: Codable, Identifiable, Sendable {
+public struct AdjustmentEffect: Effect {
     public var id: UUID
     public var type: EffectType
     public var parameters: [String: Double]
     public var isEnabled: Bool
-    
-    public enum EffectType: String, Codable, Sendable {
-        case sepia
-        case blackAndWhite
-        case brightness
-        case contrast
-        case saturation
-        case blur
-        case sharpen
-        case vignette
-        case colorControls
-        case customLUT
-    }
-    
-    public init(
-        id: UUID = UUID(),
-        type: EffectType,
-        parameters: [String: Double] = [:],
-        isEnabled: Bool = true
-    ) {
-        self.id = id
-        self.type = type
-        self.parameters = parameters
-        self.isEnabled = isEnabled
-    }
     
     // MARK: - Factory Methods
     

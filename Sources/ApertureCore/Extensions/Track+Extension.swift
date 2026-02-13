@@ -2,7 +2,15 @@ import Foundation
 import AVFoundation
 
 extension Track {
-    
+
+    public enum TrackType: String, Codable, Sendable {
+        case video
+        case audio
+        case overlay
+        case subtitle
+        case effect
+    }
+
     /// Add a clip to the track
     public mutating func addClip(_ clip: Clip) {
         clips.append(clip)

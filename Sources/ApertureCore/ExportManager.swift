@@ -4,7 +4,6 @@ import AVFoundation
 import Combine
 
 /// Export preset configurations
-@available(iOS 15.0, macOS 12.0, *)
 public enum ExportPreset: Sendable {
     case hd720p
     case hd1080p
@@ -49,7 +48,6 @@ public enum ExportPreset: Sendable {
 }
 
 /// Manages video export operations
-@available(iOS 15.0, macOS 12.0, *)
 public actor ExportManager {
     private var currentExportSession: AVAssetExportSession?
     static let shared = ExportManager()
@@ -76,7 +74,6 @@ public actor ExportManager {
             throw ApertureError.exportFailed("")
         }
         
-
         exportSession.shouldOptimizeForNetworkUse = true
         
         self.currentExportSession = exportSession

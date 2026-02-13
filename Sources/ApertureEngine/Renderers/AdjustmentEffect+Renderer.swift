@@ -4,9 +4,10 @@ import CoreImage
 import ApertureCore
 
 /// Renders effects defined in Core models using CoreImage filters
-@available(iOS 15.0, macOS 12.0, *)
-public class EffectRenderer {
-    
+actor EffectRenderer {
+
+    static let shared = EffectRenderer()
+
     private let ciContext: CIContext
     
     public init(ciContext: CIContext = CIContext()) {

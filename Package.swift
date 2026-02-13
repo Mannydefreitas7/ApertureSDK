@@ -27,8 +27,8 @@ let package = Package(
             name: "ApertureUI",
             targets: ["ApertureUI"]),
         .library(
-            name: "ApertureAssets",
-            targets: ["ApertureAssets"]),
+            name: "ApertureLib",
+            targets: ["ApertureLib"]),
         .library(
             name: "ApertureAI",
             targets: ["ApertureAI"]),
@@ -43,7 +43,7 @@ let package = Package(
                 "ApertureEngine",
                 "ApertureExport",
                 "ApertureUI",
-                "ApertureAssets",
+                "ApertureLib",
                 "ApertureAI",
             ]),
         .target(

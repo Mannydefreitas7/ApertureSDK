@@ -15,20 +15,23 @@ let package = Package(
             name: "ApertureSDK",
             targets: ["ApertureSDK"]),
         .library(
-            name: "VideoEditorCore",
-            targets: ["VideoEditorCore"]),
+            name: "ApertureCore",
+            targets: ["ApertureCore"]),
         .library(
-            name: "VideoEditorEngine",
-            targets: ["VideoEditorEngine"]),
+            name: "ApertureEngine",
+            targets: ["ApertureEngine"]),
         .library(
-            name: "VideoEditorExport",
-            targets: ["VideoEditorExport"]),
+            name: "ApertureExport",
+            targets: ["ApertureExport"]),
         .library(
-            name: "VideoEditorSwiftUI",
-            targets: ["VideoEditorSwiftUI"]),
+            name: "ApertureUI",
+            targets: ["ApertureUI"]),
         .library(
-            name: "VideoEditorAssets",
-            targets: ["VideoEditorAssets"]),
+            name: "ApertureAssets",
+            targets: ["ApertureAssets"]),
+        .library(
+            name: "ApertureAI",
+            targets: ["ApertureAI"]),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -36,32 +39,36 @@ let package = Package(
         .target(
             name: "ApertureSDK",
             dependencies: [
-                "VideoEditorCore",
-                "VideoEditorEngine",
-                "VideoEditorExport",
-                "VideoEditorSwiftUI",
-                "VideoEditorAssets",
+                "ApertureCore",
+                "ApertureEngine",
+                "ApertureExport",
+                "ApertureUI",
+                "ApertureAssets",
+                "ApertureAI",
             ]),
         .target(
-            name: "VideoEditorCore"),
+            name: "ApertureCore"),
         .target(
-            name: "VideoEditorEngine",
-            dependencies: ["VideoEditorCore"]),
+            name: "ApertureEngine",
+            dependencies: ["ApertureCore"]),
         .target(
-            name: "VideoEditorExport",
-            dependencies: ["VideoEditorCore", "VideoEditorEngine"]),
+            name: "ApertureExport",
+            dependencies: ["ApertureCore", "ApertureEngine"]),
         .target(
-            name: "VideoEditorSwiftUI",
-            dependencies: ["VideoEditorCore", "VideoEditorEngine", "VideoEditorExport"]),
+            name: "ApertureUI",
+            dependencies: ["ApertureCore", "ApertureEngine", "ApertureExport"]),
         .target(
-            name: "VideoEditorAssets",
-            dependencies: ["VideoEditorCore"],
+            name: "ApertureAssets",
+            dependencies: ["ApertureCore"],
             resources: [.process("Resources")]),
+        .target(
+            name: "ApertureAI",
+            dependencies: ["ApertureCore", "ApertureEngine"]),
         .testTarget(
             name: "ApertureSDKTests",
             dependencies: ["ApertureSDK"]),
         .testTarget(
             name: "VideoEditorCoreTests",
-            dependencies: ["VideoEditorCore"]),
+            dependencies: ["ApertureCore"]),
     ]
 )

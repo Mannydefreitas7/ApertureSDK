@@ -1,27 +1,27 @@
 import Foundation
 import AVFoundation
 
-/// 视频导出器
+/// Video exporter
 class VideoExporter: ObservableObject {
 
-    /// 导出进度 (0.0 - 1.0)
+    /// Export progress (0.0 - 1.0)
     @Published var progress: Float = 0
 
-    /// 是否正在导出
+    /// Whether currently exporting
     @Published var isExporting: Bool = false
 
-    /// 导出状态
+    /// Export status
     @Published var status: ExportStatus = .idle
 
     private var exportSession: AVAssetExportSession?
     private var progressTimer: Timer?
 
-    /// 导出预设
+    /// Export presets
     enum ExportPreset {
         case low        // 640x480
         case medium     // 960x540
         case high       // 1280x720
-        case highest    // 原始质量
+        case highest    // Original quality
         case h264_1080p // H.264 1080p
         case hevc_1080p // HEVC 1080p
 
@@ -38,17 +38,17 @@ class VideoExporter: ObservableObject {
 
         var displayName: String {
             switch self {
-            case .low: return "低质量 (480p)"
-            case .medium: return "中等质量 (540p)"
-            case .high: return "高质量 (720p)"
-            case .highest: return "最高质量"
+            case .low: return "Low Quality (480p)"
+            case .medium: return "Medium Quality (540p)"
+            case .high: return "High Quality (720p)"
+            case .highest: return "Highest Quality"
             case .h264_1080p: return "H.264 1080p"
             case .hevc_1080p: return "HEVC 1080p"
             }
         }
     }
 
-    /// 导出配置
+    /// Export configuration
     struct ExportConfiguration {
         var preset: ExportPreset = .highest
         var fileType: AVFileType = .mp4
@@ -59,7 +59,7 @@ class VideoExporter: ObservableObject {
         static let `default` = ExportConfiguration()
     }
 
-    /// 导出视频
+    /// Export video
     func export(
         project: Project,
         to outputURL: URL,
@@ -71,10 +71,10 @@ class VideoExporter: ObservableObject {
             status = .preparing
         }
 
-        // 构建合成
+        // Build composition
         let result = try await CompositionBuilder.buildComposition(from: project)
 
-        // 创建导出会话
+        // Create export session
         guard let session = result.makeExportSession(preset: configuration.preset.avPreset) else {
             throw ExportError.failedToCreateSession
         }
@@ -92,23 +92,23 @@ class VideoExporter: ObservableObject {
             session.metadata = metadata
         }
 
-        // 删除已存在的文件
+        // Delete existing file
         try? FileManager.default.removeItem(at: outputURL)
 
         await MainActor.run {
             status = .exporting
         }
 
-        // 开始进度监控
+        // Start progress monitoring
         startProgressMonitoring()
 
-        // 执行导出
+        // Execute export
         await session.export()
 
-        // 停止进度监控
+        // Stop progress monitoring
         stopProgressMonitoring()
 
-        // 检查结果
+        // Check result
         switch session.status {
         case .completed:
             await MainActor.run {
@@ -133,7 +133,7 @@ class VideoExporter: ObservableObject {
         }
     }
 
-    /// 取消导出
+    /// Cancel export
     func cancelExport() {
         exportSession?.cancelExport()
         stopProgressMonitoring()
@@ -144,7 +144,7 @@ class VideoExporter: ObservableObject {
         }
     }
 
-    /// 开始进度监控
+    /// Start progress monitoring
     private func startProgressMonitoring() {
         progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self = self, let session = self.exportSession else { return }
@@ -154,13 +154,13 @@ class VideoExporter: ObservableObject {
         }
     }
 
-    /// 停止进度监控
+    /// Stop progress monitoring
     private func stopProgressMonitoring() {
         progressTimer?.invalidate()
         progressTimer = nil
     }
 
-    /// 获取可用的导出预设
+    /// Get available export presets
     static func availablePresets(for asset: AVAsset) async -> [ExportPreset] {
         let allPresets: [ExportPreset] = [.low, .medium, .high, .highest, .h264_1080p, .hevc_1080p]
         var available: [ExportPreset] = []
@@ -175,7 +175,7 @@ class VideoExporter: ObservableObject {
         return available
     }
 
-    /// 估算输出文件大小
+    /// Estimate output file size
     static func estimateFileSize(
         duration: CMTime,
         preset: ExportPreset
@@ -196,7 +196,7 @@ class VideoExporter: ObservableObject {
     }
 }
 
-/// 导出状态
+/// Export status
 enum ExportStatus: Equatable {
     case idle
     case preparing
@@ -218,7 +218,7 @@ enum ExportStatus: Equatable {
     }
 }
 
-/// 导出错误
+/// Export errors
 enum ExportError: LocalizedError {
     case failedToCreateSession
     case cancelled
@@ -227,11 +227,11 @@ enum ExportError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .failedToCreateSession:
-            return "无法创建导出会话"
+            return "Failed to create export session"
         case .cancelled:
-            return "导出已取消"
+            return "Export cancelled"
         case .unknown:
-            return "未知错误"
+            return "Unknown error"
         }
     }
 }

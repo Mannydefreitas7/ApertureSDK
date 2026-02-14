@@ -1,7 +1,7 @@
 #if canImport(AVFoundation) && canImport(SwiftUI)
 import SwiftUI
-import VideoEditorCore
-import VideoEditorExport
+import ApertureCore
+import ApertureExport
 
 /// A reusable export button with progress display
 @available(iOS 15.0, macOS 12.0, *)

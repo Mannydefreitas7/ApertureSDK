@@ -10,9 +10,9 @@ import AppKit
 import UIKit
 #endif
 
-// MARK: - 高级导出器
+// MARK: - Advanced Exporter
 
-/// 高级导出器
+/// Advanced exporter
 class AdvancedExporter: ObservableObject {
 
     @Published var isExporting = false
@@ -21,20 +21,20 @@ class AdvancedExporter: ObservableObject {
 
     // MARK: - GIF 导出
 
-    /// GIF 导出配置
+    /// GIF export configuration
     struct GIFConfiguration {
         var fps: Int = 15
         var width: Int = 480
-        var loopCount: Int = 0  // 0 = 无限循环
+        var loopCount: Int = 0  // 0 = infinite loop
         var quality: Float = 0.8
         var timeRange: CMTimeRange?
 
-        /// 预设
+        /// Presets
         enum Preset: String, CaseIterable {
-            case small = "小尺寸"
-            case medium = "中等"
-            case large = "大尺寸"
-            case highQuality = "高质量"
+            case small = "Small"
+            case medium = "Medium"
+            case large = "Large"
+            case highQuality = "High Quality"
 
             var config: GIFConfiguration {
                 switch self {
@@ -47,7 +47,7 @@ class AdvancedExporter: ObservableObject {
         }
     }
 
-    /// 导出为 GIF
+    /// Export as GIF
     func exportGIF(
         from asset: AVAsset,
         to outputURL: URL,
@@ -56,7 +56,7 @@ class AdvancedExporter: ObservableObject {
         await MainActor.run {
             isExporting = true
             progress = 0
-            currentStep = "正在生成 GIF..."
+            currentStep = "Generating GIF..."
         }
 
         let duration = try await asset.load(.duration)
@@ -99,7 +99,7 @@ class AdvancedExporter: ObservableObject {
         }
 
         await MainActor.run {
-            currentStep = "正在编码 GIF..."
+            currentStep = "Encoding GIF..."
         }
 
         // 创建 GIF
@@ -141,17 +141,17 @@ class AdvancedExporter: ObservableObject {
         await MainActor.run {
             isExporting = false
             progress = 1.0
-            currentStep = "完成"
+            currentStep = "Complete"
         }
     }
 
     // MARK: - 序列帧导出
 
-    /// 序列帧导出配置
+    /// Image sequence export configuration
     struct SequenceConfiguration {
         var format: ImageFormat = .png
         var fps: Int = 30
-        var width: Int?  // nil 表示原始尺寸
+        var width: Int?  // nil means original size
         var quality: Float = 1.0
         var timeRange: CMTimeRange?
         var namePrefix: String = "frame"
@@ -179,7 +179,7 @@ class AdvancedExporter: ObservableObject {
         }
     }
 
-    /// 导出为序列帧
+    /// Export as image sequence
     func exportImageSequence(
         from asset: AVAsset,
         to outputDirectory: URL,
@@ -188,10 +188,10 @@ class AdvancedExporter: ObservableObject {
         await MainActor.run {
             isExporting = true
             progress = 0
-            currentStep = "正在导出序列帧..."
+            currentStep = "Exporting image sequence..."
         }
 
-        // 创建输出目录
+        // Create output directory
         if !FileManager.default.fileExists(atPath: outputDirectory.path) {
             try FileManager.default.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
         }
@@ -232,7 +232,7 @@ class AdvancedExporter: ObservableObject {
                 try saveImage(cgImage, to: fileURL, format: configuration.format, quality: configuration.quality)
                 outputURLs.append(fileURL)
             } catch {
-                print("跳过帧 \(i): \(error)")
+                print("Skip frame \(i): \(error)")
             }
 
             await MainActor.run {
@@ -243,13 +243,13 @@ class AdvancedExporter: ObservableObject {
         await MainActor.run {
             isExporting = false
             progress = 1.0
-            currentStep = "完成"
+            currentStep = "Complete"
         }
 
         return outputURLs
     }
 
-    /// 保存图像
+    /// Save image
     private func saveImage(_ image: CGImage, to url: URL, format: SequenceConfiguration.ImageFormat, quality: Float) throws {
         guard let destination = CGImageDestinationCreateWithURL(
             url as CFURL,
@@ -275,7 +275,7 @@ class AdvancedExporter: ObservableObject {
 
     // MARK: - 音频单独导出
 
-    /// 音频导出配置
+    /// Audio export configuration
     struct AudioExportConfiguration {
         var format: AudioFormat = .m4a
         var quality: AudioQuality = .high
@@ -316,10 +316,10 @@ class AdvancedExporter: ObservableObject {
         }
 
         enum AudioQuality: String, CaseIterable {
-            case low = "低 (96kbps)"
-            case medium = "中 (128kbps)"
-            case high = "高 (256kbps)"
-            case lossless = "无损"
+            case low = "Low (96kbps)"
+            case medium = "Medium (128kbps)"
+            case high = "High (256kbps)"
+            case lossless = "Lossless"
 
             var bitRate: Int {
                 switch self {
@@ -332,7 +332,7 @@ class AdvancedExporter: ObservableObject {
         }
     }
 
-    /// 导出音频
+    /// Export audio
     func exportAudio(
         from asset: AVAsset,
         to outputURL: URL,
@@ -341,7 +341,7 @@ class AdvancedExporter: ObservableObject {
         await MainActor.run {
             isExporting = true
             progress = 0
-            currentStep = "正在导出音频..."
+            currentStep = "Exporting audio..."
         }
 
         guard let exportSession = AVAssetExportSession(
@@ -358,10 +358,10 @@ class AdvancedExporter: ObservableObject {
             exportSession.timeRange = timeRange
         }
 
-        // 删除已存在的文件
+        // Delete existing file
         try? FileManager.default.removeItem(at: outputURL)
 
-        // 监控进度
+        // Monitor progress
         let progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.progress = exportSession.progress
@@ -378,23 +378,23 @@ class AdvancedExporter: ObservableObject {
         await MainActor.run {
             isExporting = false
             progress = 1.0
-            currentStep = "完成"
+            currentStep = "Complete"
         }
     }
 
     // MARK: - 社交媒体预设
 
-    /// 社交媒体平台
+    /// Social media platforms
     enum SocialMediaPlatform: String, CaseIterable {
-        case tiktok = "抖音/TikTok"
+        case tiktok = "TikTok"
         case instagram_reels = "Instagram Reels"
         case instagram_story = "Instagram Story"
         case instagram_feed = "Instagram Feed"
         case youtube = "YouTube"
         case youtube_shorts = "YouTube Shorts"
-        case bilibili = "B站"
-        case weibo = "微博"
-        case wechat = "微信视频号"
+        case bilibili = "Bilibili"
+        case weibo = "Weibo"
+        case wechat = "WeChat Video"
         case twitter = "Twitter/X"
         case facebook = "Facebook"
 
@@ -411,7 +411,7 @@ class AdvancedExporter: ObservableObject {
             }
         }
 
-        /// 导出配置
+        /// Export configuration
         var exportConfig: SocialMediaExportConfig {
             switch self {
             case .tiktok:
@@ -508,7 +508,7 @@ class AdvancedExporter: ObservableObject {
                 return SocialMediaExportConfig(
                     resolution: CGSize(width: 1280, height: 720),
                     aspectRatio: "16:9",
-                    maxDuration: 240 * 60,  // 4小时
+                    maxDuration: 240 * 60,  // 4 hours
                     maxFileSize: 4 * 1024 * 1024 * 1024,
                     recommendedBitrate: 6_000_000,
                     frameRate: 30
@@ -517,17 +517,17 @@ class AdvancedExporter: ObservableObject {
         }
     }
 
-    /// 社交媒体导出配置
+    /// Social media export configuration
     struct SocialMediaExportConfig {
         var resolution: CGSize
         var aspectRatio: String
-        var maxDuration: TimeInterval?  // 秒，nil 表示无限制
-        var maxFileSize: Int64  // 字节
+        var maxDuration: TimeInterval?  // seconds, nil means unlimited
+        var maxFileSize: Int64  // bytes
         var recommendedBitrate: Int
         var frameRate: Double
     }
 
-    /// 为社交媒体导出
+    /// Export for social media
     func exportForSocialMedia(
         project: Project,
         platform: SocialMediaPlatform,
@@ -536,23 +536,23 @@ class AdvancedExporter: ObservableObject {
         await MainActor.run {
             isExporting = true
             progress = 0
-            currentStep = "正在为 \(platform.rawValue) 优化导出..."
+            currentStep = "Optimizing export for \(platform.rawValue)..."
         }
 
         let config = platform.exportConfig
 
-        // 检查时长限制
+        // Check duration limit
         let duration = CMTimeGetSeconds(project.duration)
         if let maxDuration = config.maxDuration, duration > maxDuration {
             await MainActor.run {
-                currentStep = "警告：视频时长超过平台限制"
+                currentStep = "Warning: Video duration exceeds platform limit"
             }
         }
 
-        // 构建合成
+        // Build composition
         let result = try await CompositionBuilder.buildComposition(from: project)
 
-        // 配置导出
+        // Configure export
         guard let exportSession = AVAssetExportSession(
             asset: result.composition,
             presetName: AVAssetExportPresetHighestQuality
@@ -565,10 +565,10 @@ class AdvancedExporter: ObservableObject {
         exportSession.videoComposition = result.videoComposition
         exportSession.shouldOptimizeForNetworkUse = true
 
-        // 删除已存在的文件
+        // Delete existing file
         try? FileManager.default.removeItem(at: outputURL)
 
-        // 监控进度
+        // Monitor progress
         let progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.progress = exportSession.progress
@@ -582,7 +582,7 @@ class AdvancedExporter: ObservableObject {
             throw exportSession.error ?? ExportError.unknown
         }
 
-        // 检查文件大小
+        // Check file size
         let fileSize = try FileManager.default.attributesOfItem(atPath: outputURL.path)[.size] as? Int64 ?? 0
         if fileSize > config.maxFileSize {
             await MainActor.run {

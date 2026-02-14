@@ -2,7 +2,7 @@
 //  ImportExportEnhanced.swift
 //  VideoEditor
 //
-//  导入导出增强模块 - ProRes、HEVC、XML/EDL、直接发布
+//  Import/Export Enhancement Module - ProRes, HEVC, XML/EDL, Direct Publishing
 //
 
 import Foundation
@@ -15,9 +15,9 @@ import AppKit
 import UIKit
 #endif
 
-// MARK: - 导出预设
+// MARK: - Export Presets
 
-/// 导出预设类型
+/// Export preset type
 enum ExportPresetType: String, CaseIterable, Codable {
     case h264_1080p = "H.264 1080p"
     case h264_4k = "H.264 4K"
@@ -28,14 +28,14 @@ enum ExportPresetType: String, CaseIterable, Codable {
     case prores4444 = "ProRes 4444"
     case proresRaw = "ProRes RAW"
     case gif = "GIF"
-    case audioOnly = "仅音频"
+    case audioOnly = "Audio Only"
     case youtube = "YouTube"
-    case tiktok = "抖音/TikTok"
+    case tiktok = "TikTok"
     case instagram = "Instagram"
     case twitter = "Twitter"
-    case bilibili = "哔哩哔哩"
-    case wechat = "微信视频号"
-    case custom = "自定义"
+    case bilibili = "Bilibili"
+    case wechat = "WeChat Video"
+    case custom = "Custom"
 
     var settings: ExportSettings {
         switch self {
@@ -173,7 +173,7 @@ enum ExportPresetType: String, CaseIterable, Codable {
     }
 }
 
-/// 视频编解码器
+/// Video codec
 enum VideoCodecType: String, CaseIterable, Codable {
     case h264 = "H.264"
     case hevc = "HEVC"
@@ -184,7 +184,7 @@ enum VideoCodecType: String, CaseIterable, Codable {
     case vp9 = "VP9"
     case av1 = "AV1"
     case gif = "GIF"
-    case none = "无"
+    case none = "None"
 
     var avCodecKey: String? {
         switch self {
@@ -201,7 +201,7 @@ enum VideoCodecType: String, CaseIterable, Codable {
     }
 }
 
-/// 音频编解码器
+/// Audio codec
 enum AudioCodecType: String, CaseIterable, Codable {
     case aac = "AAC"
     case mp3 = "MP3"
@@ -209,7 +209,7 @@ enum AudioCodecType: String, CaseIterable, Codable {
     case flac = "FLAC"
     case alac = "ALAC"
     case opus = "Opus"
-    case none = "无"
+    case none = "None"
 
     var formatID: AudioFormatID? {
         switch self {
@@ -224,7 +224,7 @@ enum AudioCodecType: String, CaseIterable, Codable {
     }
 }
 
-/// 容器格式
+/// Container format
 enum ContainerFormat: String, CaseIterable, Codable {
     case mp4 = "MP4"
     case mov = "MOV"
@@ -240,9 +240,9 @@ enum ContainerFormat: String, CaseIterable, Codable {
         switch self {
         case .mp4: return .mp4
         case .mov: return .mov
-        case .mkv: return .mp4 // MKV需要特殊处理
+        case .mkv: return .mp4 // MKV requires special handling
         case .webm: return .mp4
-        case .avi: return .mp4  // AVI不被AVFoundation直接支持，使用MP4容器
+        case .avi: return .mp4  // AVI not directly supported by AVFoundation, use MP4 container
         case .gif: return .mp4
         case .m4a: return .m4a
         case .mp3: return .mp3
@@ -255,7 +255,7 @@ enum ContainerFormat: String, CaseIterable, Codable {
     }
 }
 
-/// 导出设置
+/// Export settings
 struct ExportSettings: Codable {
     var videoCodec: VideoCodecType = .h264
     var width: Int = 1920
@@ -286,17 +286,17 @@ struct ExportSettings: Codable {
     var metadata: [String: String] = [:]
 
     enum ExportQuality: String, Codable, CaseIterable {
-        case draft = "草稿"
-        case low = "低"
-        case medium = "中"
-        case high = "高"
-        case highest = "最高"
+        case draft = "Draft"
+        case low = "Low"
+        case medium = "Medium"
+        case high = "High"
+        case highest = "Highest"
     }
 }
 
-// MARK: - 增强导出管理器
+// MARK: - Enhanced Export Manager
 
-/// 增强导出管理器
+/// Enhanced export manager
 class EnhancedExportManager: ObservableObject {
     static let shared = EnhancedExportManager()
 
@@ -316,9 +316,9 @@ class EnhancedExportManager: ObservableObject {
 
     private let exportQueue = DispatchQueue(label: "com.videoeditor.export", qos: .userInitiated)
 
-    // MARK: - 导出方法
+    // MARK: - Export Methods
 
-    /// 导出视频
+    /// Export video
     func exportVideo(
         from composition: AVComposition,
         videoComposition: AVVideoComposition?,
@@ -332,12 +332,12 @@ class EnhancedExportManager: ObservableObject {
         currentExportSettings = settings
         exportProgress = 0
 
-        // 检查并删除已存在的文件
+        // Check and delete existing file
         if FileManager.default.fileExists(atPath: outputURL.path) {
             try? FileManager.default.removeItem(at: outputURL)
         }
 
-        // 根据编码器选择导出方式
+        // Choose export method based on codec
         if settings.videoCodec == .prores422 || settings.videoCodec == .prores422hq ||
            settings.videoCodec == .prores4444 || settings.videoCodec == .proresRaw {
             exportWithProRes(
@@ -370,7 +370,7 @@ class EnhancedExportManager: ObservableObject {
         }
     }
 
-    /// 标准导出
+    /// Standard export
     private func exportWithStandard(
         composition: AVComposition,
         videoComposition: AVVideoComposition?,
@@ -384,7 +384,7 @@ class EnhancedExportManager: ObservableObject {
 
         guard let session = AVAssetExportSession(asset: composition, presetName: presetName) else {
             isExporting = false
-            completion(.failure(NSError(domain: "ExportError", code: -1, userInfo: [NSLocalizedDescriptionKey: "无法创建导出会话"])))
+            completion(.failure(NSError(domain: "ExportError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unable to create export session"])))
             return
         }
 
@@ -405,10 +405,10 @@ class EnhancedExportManager: ObservableObject {
             session.timeRange = timeRange
         }
 
-        // 设置元数据
+        // Set metadata
         session.metadata = createMetadataItems(from: settings.metadata)
 
-        // 进度监控
+        // Progress monitoring
         let progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] timer in
             let progressValue = Double(session.progress)
             self?.exportProgress = progressValue
@@ -431,7 +431,7 @@ class EnhancedExportManager: ObservableObject {
                 case .failed:
                     completion(.failure(session.error ?? NSError(domain: "ExportError", code: -2)))
                 case .cancelled:
-                    completion(.failure(NSError(domain: "ExportError", code: -3, userInfo: [NSLocalizedDescriptionKey: "导出已取消"])))
+                    completion(.failure(NSError(domain: "ExportError", code: -3, userInfo: [NSLocalizedDescriptionKey: "Export cancelled"])))
                 default:
                     break
                 }
@@ -439,7 +439,7 @@ class EnhancedExportManager: ObservableObject {
         }
     }
 
-    /// ProRes导出
+    /// ProRes export
     private func exportWithProRes(
         composition: AVComposition,
         videoComposition: AVVideoComposition?,
@@ -451,11 +451,11 @@ class EnhancedExportManager: ObservableObject {
     ) {
         exportQueue.async { [weak self] in
             do {
-                // 创建AssetWriter
+                // Create AssetWriter
                 let writer = try AVAssetWriter(outputURL: outputURL, fileType: .mov)
                 self?.assetWriter = writer
 
-                // 视频设置
+                // Video settings
                 let videoSettings: [String: Any] = [
                     AVVideoCodecKey: settings.videoCodec.avCodecKey ?? AVVideoCodecType.proRes422.rawValue,
                     AVVideoWidthKey: settings.width,
@@ -466,7 +466,7 @@ class EnhancedExportManager: ObservableObject {
                 videoInput.expectsMediaDataInRealTime = false
                 self?.videoInput = videoInput
 
-                // 音频设置
+                // Audio settings
                 let audioSettings: [String: Any] = [
                     AVFormatIDKey: kAudioFormatLinearPCM,
                     AVSampleRateKey: settings.audioSampleRate,
@@ -482,7 +482,7 @@ class EnhancedExportManager: ObservableObject {
                 writer.add(videoInput)
                 writer.add(audioInput)
 
-                // 创建Reader
+                // Create Reader
                 let reader = try AVAssetReader(asset: composition)
 
                 let videoTrack = composition.tracks(withMediaType: .video).first
@@ -512,7 +512,7 @@ class EnhancedExportManager: ObservableObject {
                     reader.add(audioOutput!)
                 }
 
-                // 开始读写
+                // Start reading/writing
                 guard reader.startReading() && writer.startWriting() else {
                     throw reader.error ?? writer.error ?? NSError(domain: "ExportError", code: -4)
                 }
@@ -522,7 +522,7 @@ class EnhancedExportManager: ObservableObject {
                 let totalDuration = composition.duration.seconds
                 var processedTime: Double = 0
 
-                // 处理视频
+                // Process video
                 let videoGroup = DispatchGroup()
                 if let output = videoOutput {
                     videoGroup.enter()

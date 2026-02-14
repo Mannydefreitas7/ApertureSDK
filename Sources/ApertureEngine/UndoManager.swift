@@ -2,81 +2,81 @@ import Foundation
 import Combine
 import AVFoundation
 
-/// 编辑操作命令协议
+/// Edit operation command protocol
 protocol EditCommand {
-    /// 执行操作
+    /// Execute operation
     func execute()
 
-    /// 撤销操作
+    /// Undo operation
     func undo()
 
-    /// 操作描述
+    /// Operation description
     var description: String { get }
 }
 
-/// 编辑历史管理器
+/// Edit history manager
 @MainActor
 class EditHistoryManager: ObservableObject {
 
-    /// 撤销栈
+    /// Undo stack
     @Published private(set) var undoStack: [EditCommand] = []
 
-    /// 重做栈
+    /// Redo stack
     @Published private(set) var redoStack: [EditCommand] = []
 
-    /// 最大历史记录数
+    /// Maximum history count
     var maxHistorySize: Int = 50
 
-    /// 是否可以撤销
+    /// Whether can undo
     var canUndo: Bool { !undoStack.isEmpty }
 
-    /// 是否可以重做
+    /// Whether can redo
     var canRedo: Bool { !redoStack.isEmpty }
 
-    /// 下一个撤销操作的描述
+    /// Description of next undo operation
     var undoDescription: String? { undoStack.last?.description }
 
-    /// 下一个重做操作的描述
+    /// Description of next redo operation
     var redoDescription: String? { redoStack.last?.description }
 
-    /// 执行命令
+    /// Execute command
     func execute(_ command: EditCommand) {
         command.execute()
         undoStack.append(command)
 
-        // 清空重做栈
+        // Clear redo stack
         redoStack.removeAll()
 
-        // 限制历史大小
+        // Limit history size
         if undoStack.count > maxHistorySize {
             undoStack.removeFirst()
         }
     }
 
-    /// 撤销
+    /// Undo
     func undo() {
         guard let command = undoStack.popLast() else { return }
         command.undo()
         redoStack.append(command)
     }
 
-    /// 重做
+    /// Redo
     func redo() {
         guard let command = redoStack.popLast() else { return }
         command.execute()
         undoStack.append(command)
     }
 
-    /// 清空历史
+    /// Clear history
     func clearHistory() {
         undoStack.removeAll()
         redoStack.removeAll()
     }
 }
 
-// MARK: - 具体命令实现
+// MARK: - Concrete Command Implementations
 
-/// 添加片段命令
+/// Add clip command
 class AddClipCommand: EditCommand {
     private let engine: VideoEngine
     private let clip: Clip
@@ -100,10 +100,10 @@ class AddClipCommand: EditCommand {
         }
     }
 
-    var description: String { "添加片段 \(clip.name)" }
+    var description: String { "Add clip \(clip.name)" }
 }
 
-/// 删除片段命令
+/// Delete clip command
 class DeleteClipCommand: EditCommand {
     private let engine: VideoEngine
     private let clip: Clip
@@ -127,10 +127,10 @@ class DeleteClipCommand: EditCommand {
         }
     }
 
-    var description: String { "删除片段 \(clip.name)" }
+    var description: String { "Delete clip \(clip.name)" }
 }
 
-/// 分割片段命令
+/// Split clip command
 class SplitClipCommand: EditCommand {
     private let engine: VideoEngine
     private let originalClip: Clip
@@ -148,13 +148,13 @@ class SplitClipCommand: EditCommand {
 
     func execute() {
         Task { @MainActor in
-            // 保存分割后的片段引用以便撤销
+            // Save split clip references for undo
             if let track = engine.project.tracks.first(where: { $0.id == trackId }),
                let index = track.clips.firstIndex(where: { $0.id == originalClip.id }) {
-                // 执行分割
+                // Execute split
                 engine.splitClip(id: originalClip.id, at: splitTime)
 
-                // 获取分割后的片段
+                // Get split clips
                 if let updatedTrack = engine.project.tracks.first(where: { $0.id == trackId }) {
                     if index < updatedTrack.clips.count {
                         firstClip = updatedTrack.clips[index]
@@ -169,7 +169,7 @@ class SplitClipCommand: EditCommand {
 
     func undo() {
         Task { @MainActor in
-            // 删除分割后的两个片段
+            // Delete the two split clips
             if let first = firstClip {
                 engine.deleteClip(id: first.id)
             }
@@ -177,15 +177,15 @@ class SplitClipCommand: EditCommand {
                 engine.deleteClip(id: second.id)
             }
 
-            // 恢复原始片段
+            // Restore original clip
             engine.addClip(originalClip, to: trackId)
         }
     }
 
-    var description: String { "分割片段 \(originalClip.name)" }
+    var description: String { "Split clip \(originalClip.name)" }
 }
 
-/// 移动片段命令
+/// Move clip command
 class MoveClipCommand: EditCommand {
     private let engine: VideoEngine
     private let clipId: UUID
@@ -215,10 +215,10 @@ class MoveClipCommand: EditCommand {
         }
     }
 
-    var description: String { "移动片段" }
+    var description: String { "Move clip" }
 }
 
-/// 修改片段属性命令
+/// Modify clip properties command
 class ModifyClipCommand: EditCommand {
     private let engine: VideoEngine
     private let clipId: UUID
@@ -254,10 +254,10 @@ class ModifyClipCommand: EditCommand {
         }
     }
 
-    var description: String { "修改片段 \(oldClip.name)" }
+    var description: String { "Modify clip \(oldClip.name)" }
 }
 
-/// 添加轨道命令
+/// Add track command
 class AddTrackCommand: EditCommand {
     private let engine: VideoEngine
     private let trackType: TrackType
@@ -286,10 +286,10 @@ class AddTrackCommand: EditCommand {
         }
     }
 
-    var description: String { "添加\(trackType == .video ? "视频" : "音频")轨道" }
+    var description: String { "Add \(trackType == .video ? "video" : "audio") track" }
 }
 
-/// 删除轨道命令
+/// Delete track command
 class DeleteTrackCommand: EditCommand {
     private let engine: VideoEngine
     private let track: Track
@@ -309,15 +309,15 @@ class DeleteTrackCommand: EditCommand {
 
     func undo() {
         Task { @MainActor in
-            // 恢复轨道
+            // Restore track
             engine.project.tracks.insert(track, at: min(trackIndex, engine.project.tracks.count))
         }
     }
 
-    var description: String { "删除轨道 \(track.name)" }
+    var description: String { "Delete track \(track.name)" }
 }
 
-/// 添加滤镜命令
+/// Add filter command
 class AddFilterCommand: EditCommand {
     private let engine: VideoEngine
     private let clipId: UUID
@@ -332,17 +332,17 @@ class AddFilterCommand: EditCommand {
     }
 
     func execute() {
-        // TODO: 在 Clip 模型中添加 filter 属性后实现
+        // TODO: Implement after adding filter property to Clip model
     }
 
     func undo() {
-        // TODO: 实现
+        // TODO: Implement
     }
 
-    var description: String { "添加滤镜 \(filter.type.displayName)" }
+    var description: String { "Add filter \(filter.type.displayName)" }
 }
 
-/// 添加文字命令
+/// Add text command
 class AddTextCommand: EditCommand {
     private let engine: VideoEngine
     private let textOverlay: TextOverlay
@@ -353,17 +353,17 @@ class AddTextCommand: EditCommand {
     }
 
     func execute() {
-        // TODO: 在 Project 模型中添加 textOverlays 属性后实现
+        // TODO: Implement after adding textOverlays property to Project model
     }
 
     func undo() {
-        // TODO: 实现
+        // TODO: Implement
     }
 
-    var description: String { "添加文字" }
+    var description: String { "Add text" }
 }
 
-/// 复合命令（用于批量操作）
+/// Compound command (for batch operations)
 class CompoundCommand: EditCommand {
     private let commands: [EditCommand]
     private let name: String

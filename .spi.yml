@@ -1,7 +1,0 @@
-version: 1
-builder:
-  configs:
-    - platform: ios
-      swift_version: "5.9"
-    - platform: macos
-      swift_version: "5.9"

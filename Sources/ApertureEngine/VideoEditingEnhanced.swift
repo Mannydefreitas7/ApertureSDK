@@ -10,9 +10,9 @@ import AppKit
 import UIKit
 #endif
 
-// MARK: - 1. 视频编辑增强模块
+// MARK: - 1. Video Editing Enhancement Module
 
-// MARK: - 多机位编辑
+// MARK: - Multi-Camera Editing
 
 struct MultiCamProject: Identifiable, Codable {
     let id: UUID
@@ -22,7 +22,7 @@ struct MultiCamProject: Identifiable, Codable {
     var activeAngleId: UUID?
     var cuts: [MultiCamCut]
 
-    init(id: UUID = UUID(), name: String = "多机位项目") {
+    init(id: UUID = UUID(), name: String = "Multi-Camera Project") {
         self.id = id
         self.name = name
         self.angles = []
@@ -35,8 +35,8 @@ struct CameraAngle: Identifiable, Codable {
     let id: UUID
     var name: String
     var clipId: UUID
-    var syncOffset: CMTime  // 相对于同步点的偏移
-    var isAudioSource: Bool  // 是否作为主音频源
+    var syncOffset: CMTime  // Offset relative to sync point
+    var isAudioSource: Bool  // Whether to use as main audio source
 
     init(id: UUID = UUID(), name: String, clipId: UUID, syncOffset: CMTime = .zero, isAudioSource: Bool = false) {
         self.id = id
@@ -62,13 +62,13 @@ class MultiCamEditor: ObservableObject {
 
     private init() {}
 
-    // 创建多机位项目
+    // Create multi-camera project
     func createProject(name: String, clips: [Clip]) -> MultiCamProject {
         var project = MultiCamProject(name: name)
 
         for (index, clip) in clips.enumerated() {
             let angle = CameraAngle(
-                name: "机位 \(index + 1)",
+                name: "Camera \(index + 1)",
                 clipId: clip.id,
                 isAudioSource: index == 0
             )
@@ -79,12 +79,12 @@ class MultiCamEditor: ObservableObject {
         return project
     }
 
-    // 自动同步（基于音频波形）
+    // Auto sync (based on audio waveform)
     func autoSync() async throws {
         guard var project = currentProject else { return }
 
-        // 使用音频波形匹配进行同步
-        // 这里简化实现，实际需要使用互相关算法
+        // Use audio waveform matching for sync
+        // Simplified implementation, actual needs cross-correlation algorithm
         for i in 1..<project.angles.count {
             let offset = try await calculateAudioOffset(
                 reference: project.angles[0].clipId,
@@ -97,20 +97,20 @@ class MultiCamEditor: ObservableObject {
     }
 
     private func calculateAudioOffset(reference: UUID, target: UUID) async throws -> CMTime {
-        // 简化实现 - 实际应使用FFT和互相关
+        // Simplified implementation - should use FFT and cross-correlation
         return CMTime(seconds: 0, preferredTimescale: 600)
     }
 
-    // 切换机位
+    // Switch camera angle
     func switchAngle(to angleId: UUID, at time: CMTime) {
         guard var project = currentProject else { return }
 
-        // 结束当前片段
+        // End current clip
         if let lastCut = project.cuts.last, lastCut.endTime == .positiveInfinity {
             project.cuts[project.cuts.count - 1].endTime = time
         }
 
-        // 添加新切换点
+        // Add new cut point
         let cut = MultiCamCut(
             id: UUID(),
             angleId: angleId,
@@ -123,19 +123,19 @@ class MultiCamEditor: ObservableObject {
         currentProject = project
     }
 
-    // 导出多机位编辑结果
+    // Export multi-camera editing result
     func exportToTimeline() -> [Clip] {
-        // 将多机位切换转换为普通时间线片段
+        // Convert multi-camera cuts to regular timeline clips
         return []
     }
 }
 
-// MARK: - 代理编辑
+// MARK: - Proxy Editing
 
 enum ProxyQuality: String, Codable, CaseIterable {
     case quarter = "1/4"
     case half = "1/2"
-    case full = "原始"
+    case full = "Full"
 
     var scale: CGFloat {
         switch self {
@@ -158,7 +158,7 @@ class ProxyManager: ObservableObject {
 
     private init() {}
 
-    // 生成代理文件
+    // Generate proxy file
     func generateProxy(for clip: Clip, quality: ProxyQuality = .half) async throws -> URL {
         if let cached = proxyCache[clip.id] {
             return cached
@@ -172,7 +172,7 @@ class ProxyManager: ObservableObject {
         let outputURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("\(clip.id)_proxy_\(quality.rawValue).mp4")
 
-        // 创建导出会话
+        // Create export session
         guard let exportSession = AVAssetExportSession(
             asset: asset,
             presetName: quality == .quarter ? AVAssetExportPreset640x480 : AVAssetExportPreset1280x720
@@ -193,7 +193,7 @@ class ProxyManager: ObservableObject {
         }
     }
 
-    // 批量生成代理
+    // Batch generate proxies
     func generateProxies(for clips: [Clip]) async {
         for (index, clip) in clips.enumerated() {
             do {
@@ -205,7 +205,7 @@ class ProxyManager: ObservableObject {
         }
     }
 
-    // 获取代理或原始资源
+    // Get proxy or original asset
     func getAsset(for clip: Clip) -> AVAsset? {
         if useProxyForPlayback, let proxyURL = proxyCache[clip.id] {
             return AVAsset(url: proxyURL)
@@ -213,7 +213,7 @@ class ProxyManager: ObservableObject {
         return clip.asset
     }
 
-    // 清理代理缓存
+    // Clear proxy cache
     func clearCache() {
         for url in proxyCache.values {
             try? FileManager.default.removeItem(at: url)
@@ -227,7 +227,7 @@ class ProxyManager: ObservableObject {
     }
 }
 
-// MARK: - 嵌套序列（复合片段）
+// MARK: - Nested Sequences (Compound Clips)
 
 struct CompoundClip: Identifiable {
     let id: UUID
@@ -242,7 +242,7 @@ struct CompoundClip: Identifiable {
         self.clips = clips
         self.settings = settings
 
-        // 计算总时长
+        // Calculate total duration
         self.duration = clips.reduce(.zero) { max($0, $1.startTime + $1.duration) }
     }
 }
@@ -254,38 +254,38 @@ class CompoundClipManager: ObservableObject {
 
     private init() {}
 
-    // 创建复合片段
+    // Create compound clip
     func createCompoundClip(name: String, from clips: [Clip], settings: ProjectSettings) -> CompoundClip {
         let compound = CompoundClip(name: name, clips: clips, settings: settings)
         compoundClips.append(compound)
         return compound
     }
 
-    // 解散复合片段
+    // Dissolve compound clip
     func dissolveCompoundClip(_ compound: CompoundClip) -> [Clip] {
         compoundClips.removeAll { $0.id == compound.id }
         return compound.clips
     }
 
-    // 渲染复合片段为单个视频
+    // Render compound clip as single video
     func renderCompoundClip(_ compound: CompoundClip) async throws -> URL {
-        // 使用 CompositionBuilder 渲染
+        // Use CompositionBuilder to render
         let outputURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("\(compound.id).mp4")
 
-        // 实现渲染逻辑
+        // Implement rendering logic
         return outputURL
     }
 }
 
-// MARK: - 冻结帧
+// MARK: - Freeze Frame
 
 struct FreezeFrame: Identifiable, Codable {
     let id: UUID
     var sourceClipId: UUID
     var frameTime: CMTime
     var duration: CMTime
-    var position: CMTime  // 在时间线上的位置
+    var position: CMTime  // Position on timeline
 
     init(id: UUID = UUID(), sourceClipId: UUID, frameTime: CMTime, duration: CMTime = CMTime(seconds: 2, preferredTimescale: 600), position: CMTime) {
         self.id = id
@@ -301,7 +301,7 @@ class FreezeFrameManager {
 
     private init() {}
 
-    // 创建冻结帧
+    // Create freeze frame
     func createFreezeFrame(from clip: Clip, at time: CMTime, duration: CMTime = CMTime(seconds: 2, preferredTimescale: 600)) async throws -> CGImage? {
         let asset = clip.asset
 
@@ -314,7 +314,7 @@ class FreezeFrameManager {
         return cgImage
     }
 
-    // 导出冻结帧为图片
+    // Export freeze frame as image
     func exportFreezeFrame(_ image: CGImage, to url: URL) throws {
         #if canImport(AppKit)
         let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
@@ -332,14 +332,14 @@ class FreezeFrameManager {
     }
 }
 
-// MARK: - 倒放视频
+// MARK: - Reverse Video
 
 class ReverseVideoProcessor {
     static let shared = ReverseVideoProcessor()
 
     private init() {}
 
-    // 倒放视频
+    // Reverse video
     func reverseVideo(asset: AVAsset, outputURL: URL, progress: @escaping (Double) -> Void) async throws {
         guard let videoTrack = asset.tracks(withMediaType: .video).first else {
             throw ReverseError.noVideoTrack
@@ -349,13 +349,13 @@ class ReverseVideoProcessor {
         let frameRate = videoTrack.nominalFrameRate
         let totalFrames = Int(CMTimeGetSeconds(duration) * Double(frameRate))
 
-        // 创建图像生成器
+        // Create image generator
         let generator = AVAssetImageGenerator(asset: asset)
         generator.appliesPreferredTrackTransform = true
         generator.requestedTimeToleranceBefore = .zero
         generator.requestedTimeToleranceAfter = .zero
 
-        // 提取所有帧
+        // Extract all frames
         var frames: [CGImage] = []
         for i in 0..<totalFrames {
             let time = CMTime(value: CMTimeValue(i), timescale: CMTimeScale(frameRate))
@@ -365,10 +365,10 @@ class ReverseVideoProcessor {
             progress(Double(i) / Double(totalFrames) * 0.5)
         }
 
-        // 反转帧顺序
+        // Reverse frame order
         frames.reverse()
 
-        // 写入新视频
+        // Write new video
         try await writeFramesToVideo(frames: frames, outputURL: outputURL, frameRate: frameRate) { p in
             progress(0.5 + p * 0.5)
         }
@@ -456,7 +456,7 @@ class ReverseVideoProcessor {
     }
 }
 
-// MARK: - 镜头校正
+// MARK: - Lens Correction
 
 struct LensCorrectionParams: Codable {
     var distortionK1: Float = 0
@@ -467,11 +467,11 @@ struct LensCorrectionParams: Codable {
 }
 
 enum LensCorrectionPreset: String, CaseIterable {
-    case none = "无"
+    case none = "None"
     case gopro = "GoPro"
-    case fisheye = "鱼眼"
-    case wideAngle = "广角"
-    case actionCam = "运动相机"
+    case fisheye = "Fisheye"
+    case wideAngle = "Wide Angle"
+    case actionCam = "Action Camera"
 
     var correction: LensCorrectionParams {
         switch self {
@@ -491,12 +491,12 @@ enum LensCorrectionPreset: String, CaseIterable {
 
 class LensCorrectionFilter {
     static func apply(to image: CIImage, correction: LensCorrectionParams) -> CIImage {
-        // 使用 CIFilter 进行畸变校正
-        // 实际实现需要自定义 Metal shader
+        // Use CIFilter for distortion correction
+        // Actual implementation needs custom Metal shader
 
         var result = image
 
-        // 暗角校正
+        // Vignette correction
         if correction.vignette != 0 {
             if let vignetteFilter = CIFilter(name: "CIVignette") {
                 vignetteFilter.setValue(result, forKey: kCIInputImageKey)

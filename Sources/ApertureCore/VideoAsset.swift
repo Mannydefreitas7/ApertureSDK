@@ -23,7 +23,7 @@ public class VideoAsset: Identifiable {
     public init(url: URL) async throws {
         self.id = UUID()
         self.url = url
-        self.asset = AVAsset(url: url)
+        self.asset = AVURLAsset(url: url)
         self.volume = 1.0
         
         // Load asset properties

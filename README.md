@@ -273,13 +273,13 @@ import VideoEditorCore
 
 do {
     let json = try project.toJSON()
-} catch VideoEditorError.serializationFailed(let msg) {
+} catch ApertureError.serializationFailed(let msg) {
     print("Serialization failed: \(msg)")
-} catch VideoEditorError.invalidAsset {
+} catch ApertureError.invalidAsset {
     print("Invalid asset")
-} catch VideoEditorError.exportFailed(let msg) {
+} catch ApertureError.exportFailed(let msg) {
     print("Export failed: \(msg)")
-} catch VideoEditorError.cancelled {
+} catch ApertureError.cancelled {
     print("Operation cancelled")
 } catch {
     print("Error: \(error)")

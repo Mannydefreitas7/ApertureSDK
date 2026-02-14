@@ -2,7 +2,7 @@
 import Foundation
 import AVFoundation
 import CoreImage
-import VideoEditorCore
+import ApertureCore
 
 /// Describes what to render at a given time
 public struct FrameRecipe {

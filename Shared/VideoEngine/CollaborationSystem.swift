@@ -3,9 +3,9 @@ import CloudKit
 import Combine
 import AVFoundation
 
-// MARK: - 8. 协作功能
+// MARK: - 8. Collaboration Features
 
-// MARK: - 云端同步
+// MARK: - Cloud Sync
 
 class CloudSyncManager: ObservableObject {
     static let shared = CloudSyncManager()
@@ -21,11 +21,11 @@ class CloudSyncManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     enum SyncStatus: String {
-        case idle = "空闲"
-        case syncing = "同步中"
-        case success = "同步成功"
-        case failed = "同步失败"
-        case conflict = "冲突"
+        case idle = "Idle"
+        case syncing = "Syncing"
+        case success = "Success"
+        case failed = "Failed"
+        case conflict = "Conflict"
     }
 
     private init() {
@@ -41,7 +41,7 @@ class CloudSyncManager: ObservableObject {
         }
     }
 
-    // 同步项目到云端
+    // Sync project to cloud
     func syncProject(_ project: Project) async throws {
         guard isCloudAvailable else {
             throw SyncError.cloudUnavailable
@@ -53,7 +53,7 @@ class CloudSyncManager: ObservableObject {
             isSyncing = false
         }
 
-        // 将项目转换为 CKRecord
+        // Convert project to CKRecord
         let record = try projectToRecord(project)
 
         do {
@@ -66,7 +66,7 @@ class CloudSyncManager: ObservableObject {
         }
     }
 
-    // 从云端获取项目
+    // Fetch projects from cloud
     func fetchProjects() async throws -> [Project] {
         guard isCloudAvailable else {
             throw SyncError.cloudUnavailable
@@ -89,13 +89,13 @@ class CloudSyncManager: ObservableObject {
         return projects
     }
 
-    // 删除云端项目
+    // Delete project from cloud
     func deleteProject(_ project: Project) async throws {
         let recordID = CKRecord.ID(recordName: project.id.uuidString)
         try await privateDatabase.deleteRecord(withID: recordID)
     }
 
-    // 解决冲突
+    // Resolve conflicts
     func resolveConflict(local: Project, remote: Project, resolution: ConflictResolution) -> Project {
         switch resolution {
         case .keepLocal:
@@ -103,12 +103,12 @@ class CloudSyncManager: ObservableObject {
         case .keepRemote:
             return remote
         case .merge:
-            // 合并两个项目（简化实现）
+            // Merge two projects (simplified implementation)
             return local
         }
     }
 
-    /// 用于云端同步的项目元数据
+    /// Project metadata for cloud sync
     struct ProjectMetadata: Codable {
         let id: UUID
         var name: String
@@ -121,7 +121,7 @@ class CloudSyncManager: ObservableObject {
         let recordID = CKRecord.ID(recordName: project.id.uuidString)
         let record = CKRecord(recordType: "Project", recordID: recordID)
 
-        // 只保存项目元数据，不保存完整项目（包含非Codable的AVAsset）
+        // Only save project metadata, not the complete project (contains non-Codable AVAsset)
         let metadata = ProjectMetadata(
             id: project.id,
             name: project.name,
@@ -146,9 +146,9 @@ class CloudSyncManager: ObservableObject {
         let decoder = JSONDecoder()
         guard let metadata = try? decoder.decode(ProjectMetadata.self, from: data) else { return nil }
 
-        // 创建新项目并填充元数据
+        // Create new project and populate metadata
         var project = Project(name: metadata.name, settings: metadata.settings)
-        // 注意：实际实现需要从本地存储恢复完整项目数据
+        // Note: actual implementation would restore complete project data from local storage
         return project
     }
 
@@ -165,7 +165,7 @@ class CloudSyncManager: ObservableObject {
     }
 }
 
-// MARK: - 多人协作
+// MARK: - Multi-user Collaboration
 
 class CollaborationManager: ObservableObject {
     static let shared = CollaborationManager()
@@ -187,10 +187,10 @@ class CollaborationManager: ObservableObject {
     }
 
     enum CollaboratorRole: String, Codable {
-        case owner = "所有者"
-        case editor = "编辑者"
-        case viewer = "查看者"
-        case commenter = "评论者"
+        case owner = "Owner"
+        case editor = "Editor"
+        case viewer = "Viewer"
+        case commenter = "Commenter"
 
         var canEdit: Bool {
             self == .owner || self == .editor
@@ -212,62 +212,62 @@ class CollaborationManager: ObservableObject {
 
     private init() {}
 
-    // 开始协作会话
+    // Start collaboration session
     func startSession(for project: Project) async throws -> String {
         let sessionId = UUID().uuidString
         self.sessionId = sessionId
         isCollaborating = true
 
-        // 连接到协作服务器
-        // 简化实现
+        // Connect to collaboration server
+        // Simplified implementation
 
         return sessionId
     }
 
-    // 结束协作会话
+    // End collaboration session
     func endSession() {
         sessionId = nil
         isCollaborating = false
         collaborators.removeAll()
     }
 
-    // 邀请协作者
+    // Invite collaborator
     func invite(email: String, role: CollaboratorRole, for project: Project) async throws {
-        // 发送邀请邮件
-        // 简化实现
+        // Send invitation email
+        // Simplified implementation
     }
 
-    // 接受邀请
+    // Accept invitation
     func acceptInvitation(_ invitation: Invitation) async throws {
         pendingInvitations.removeAll { $0.id == invitation.id }
-        // 加入协作会话
+        // Join collaboration session
     }
 
-    // 拒绝邀请
+    // Decline invitation
     func declineInvitation(_ invitation: Invitation) {
         pendingInvitations.removeAll { $0.id == invitation.id }
     }
 
-    // 移除协作者
+    // Remove collaborator
     func removeCollaborator(_ collaborator: Collaborator) async throws {
         collaborators.removeAll { $0.id == collaborator.id }
     }
 
-    // 更改协作者角色
+    // Update collaborator role
     func changeRole(for collaborator: Collaborator, to newRole: CollaboratorRole) async throws {
         if let index = collaborators.firstIndex(where: { $0.id == collaborator.id }) {
             collaborators[index].role = newRole
         }
     }
 
-    // 广播操作
+    // Broadcast operation
     func broadcastOperation(_ operation: EditOperation) {
-        // 通过 WebSocket 发送操作
+        // Send operation via WebSocket
     }
 
-    // 接收远程操作
+    // Receive remote operation
     func receiveOperation(_ operation: EditOperation) {
-        // 应用远程操作
+        // Apply remote operation
     }
 
     struct EditOperation: Codable {
@@ -291,7 +291,7 @@ class CollaborationManager: ObservableObject {
     }
 }
 
-// MARK: - 评论和标注
+// MARK: - Comments and Annotations
 
 class CommentManager: ObservableObject {
     static let shared = CommentManager()
@@ -310,7 +310,7 @@ class CommentManager: ObservableObject {
         var createdAt: Date
         var replies: [CommentReply]
         var isResolved: Bool
-        var position: CGPoint?  // 画面上的位置（可选）
+        var position: CGPoint?  // Position on screen (optional)
 
         init(
             id: UUID = UUID(),
@@ -354,17 +354,17 @@ class CommentManager: ObservableObject {
         var label: String
 
         enum AnnotationType: String, Codable {
-            case marker = "标记"
-            case todo = "待办"
-            case issue = "问题"
-            case approved = "已批准"
-            case rejected = "已拒绝"
+            case marker = "Marker"
+            case todo = "To Do"
+            case issue = "Issue"
+            case approved = "Approved"
+            case rejected = "Rejected"
         }
     }
 
     private init() {}
 
-    // 添加评论
+    // Add comment
     func addComment(at time: CMTime, text: String, author: String, authorId: UUID, position: CGPoint? = nil) {
         let comment = TimelineComment(
             time: time,
@@ -376,7 +376,7 @@ class CommentManager: ObservableObject {
         comments.append(comment)
     }
 
-    // 回复评论
+    // Reply to comment
     func replyToComment(_ commentId: UUID, text: String, author: String, authorId: UUID) {
         guard let index = comments.firstIndex(where: { $0.id == commentId }) else { return }
 
@@ -390,18 +390,18 @@ class CommentManager: ObservableObject {
         comments[index].replies.append(reply)
     }
 
-    // 解决评论
+    // Resolve comment
     func resolveComment(_ commentId: UUID) {
         guard let index = comments.firstIndex(where: { $0.id == commentId }) else { return }
         comments[index].isResolved = true
     }
 
-    // 删除评论
+    // Delete comment
     func deleteComment(_ commentId: UUID) {
         comments.removeAll { $0.id == commentId }
     }
 
-    // 添加标注
+    // Add annotation
     func addAnnotation(type: TimelineAnnotation.AnnotationType, at time: CMTime, label: String, color: CodableColor) {
         let annotation = TimelineAnnotation(
             id: UUID(),
@@ -413,7 +413,7 @@ class CommentManager: ObservableObject {
         annotations.append(annotation)
     }
 
-    // 获取某时间点的评论
+    // Get comments at time point
     func commentsAt(time: CMTime, tolerance: CMTime = CMTime(seconds: 1, preferredTimescale: 600)) -> [TimelineComment] {
         comments.filter { comment in
             let diff = CMTimeAbsoluteValue(CMTimeSubtract(comment.time, time))
@@ -421,9 +421,9 @@ class CommentManager: ObservableObject {
         }
     }
 
-    // 导出评论
+    // Export comments
     func exportComments() -> String {
-        var result = "# 评论列表\n\n"
+        var result = "# Comment List\n\n"
 
         for comment in comments.sorted(by: { CMTimeCompare($0.time, $1.time) < 0 }) {
             let timeStr = formatTime(comment.time)
@@ -431,7 +431,7 @@ class CommentManager: ObservableObject {
             result += "\(comment.text)\n"
 
             if comment.isResolved {
-                result += "*已解决*\n"
+                result += "*Resolved*\n"
             }
 
             for reply in comment.replies {
@@ -452,7 +452,7 @@ class CommentManager: ObservableObject {
     }
 }
 
-// MARK: - 版本历史
+// MARK: - Version History
 
 class VersionHistoryManager: ObservableObject {
     static let shared = VersionHistoryManager()
@@ -460,7 +460,7 @@ class VersionHistoryManager: ObservableObject {
     @Published var versions: [ProjectVersion] = []
     @Published var currentVersionId: UUID?
     @Published var isAutoSaveEnabled = true
-    @Published var autoSaveInterval: TimeInterval = 300  // 5分钟
+    @Published var autoSaveInterval: TimeInterval = 300  // 5 minutes
 
     private var autoSaveTimer: Timer?
 
@@ -483,7 +483,7 @@ class VersionHistoryManager: ObservableObject {
             name: String = "",
             description: String = "",
             createdAt: Date = Date(),
-            createdBy: String = "用户",
+            createdBy: String = "User",
             data: Data,
             thumbnail: Data? = nil,
             isAutoSave: Bool = false
@@ -503,9 +503,9 @@ class VersionHistoryManager: ObservableObject {
 
     private init() {}
 
-    // 创建新版本
+    // Create new version
     func createVersion(for project: Project, name: String = "", description: String = "", isAutoSave: Bool = false) throws {
-        // 只保存项目元数据
+        // Only save project metadata
         let metadata = CloudSyncManager.ProjectMetadata(
             id: project.id,
             name: project.name,
@@ -522,7 +522,7 @@ class VersionHistoryManager: ObservableObject {
         let version = ProjectVersion(
             projectId: project.id,
             versionNumber: versionNumber,
-            name: name.isEmpty ? "版本 \(versionNumber)" : name,
+            name: name.isEmpty ? "Version \(versionNumber)" : name,
             description: description,
             data: data,
             isAutoSave: isAutoSave
@@ -531,24 +531,24 @@ class VersionHistoryManager: ObservableObject {
         versions.append(version)
         currentVersionId = version.id
 
-        // 清理旧的自动保存版本（保留最近5个）
+        // Clean up old auto-save versions (keep latest 5)
         cleanupAutoSaves(for: project.id)
     }
 
-    // 恢复到指定版本
+    // Restore to specified version
     func restoreVersion(_ version: ProjectVersion) throws -> Project {
         let decoder = JSONDecoder()
         let metadata = try decoder.decode(CloudSyncManager.ProjectMetadata.self, from: version.data)
         currentVersionId = version.id
 
-        // 从元数据创建项目（实际实现需要从本地存储恢复完整数据）
+        // Create project from metadata (actual implementation would restore complete data from local storage)
         let project = Project(name: metadata.name, settings: metadata.settings)
         return project
     }
 
-    // 比较两个版本
+    // Compare two versions
     func compareVersions(_ version1: ProjectVersion, _ version2: ProjectVersion) -> VersionDiff {
-        // 简化实现：返回基本差异信息
+        // Simplified implementation: return basic difference information
         return VersionDiff(
             addedClips: 0,
             removedClips: 0,
@@ -558,27 +558,27 @@ class VersionHistoryManager: ObservableObject {
         )
     }
 
-    // 删除版本
+    // Delete version
     func deleteVersion(_ version: ProjectVersion) {
         versions.removeAll { $0.id == version.id }
     }
 
-    // 获取项目的所有版本
+    // Get all versions for project
     func versionsFor(projectId: UUID) -> [ProjectVersion] {
         versions.filter { $0.projectId == projectId }
             .sorted { $0.versionNumber > $1.versionNumber }
     }
 
-    // 开始自动保存
+    // Start auto-save
     func startAutoSave(for project: Project) {
         stopAutoSave()
 
         autoSaveTimer = Timer.scheduledTimer(withTimeInterval: autoSaveInterval, repeats: true) { [weak self] _ in
-            try? self?.createVersion(for: project, name: "自动保存", isAutoSave: true)
+            try? self?.createVersion(for: project, name: "Auto Save", isAutoSave: true)
         }
     }
 
-    // 停止自动保存
+    // Stop auto-save
     func stopAutoSave() {
         autoSaveTimer?.invalidate()
         autoSaveTimer = nil
@@ -635,23 +635,23 @@ class ProjectShareManager: ObservableObject {
         var createdAt: Date
 
         enum AccessType: String, Codable {
-            case view = "仅查看"
-            case comment = "可评论"
-            case edit = "可编辑"
-            case download = "可下载"
+            case view = "View Only"
+            case comment = "Can Comment"
+            case edit = "Can Edit"
+            case download = "Can Download"
         }
     }
 
     private init() {}
 
-    // 创建分享链接
+    // Create share link
     func createShareLink(
         for project: Project,
         accessType: SharedLink.AccessType,
         expiresIn: TimeInterval? = nil,
         password: String? = nil
     ) async throws -> SharedLink {
-        // 上传项目并生成链接
+        // Upload project and generate link
         let linkId = UUID()
         let url = URL(string: "https://videoeditor.app/share/\(linkId.uuidString)")!
 
@@ -670,12 +670,12 @@ class ProjectShareManager: ObservableObject {
         return link
     }
 
-    // 撤销分享链接
+    // Revoke share link
     func revokeShareLink(_ link: SharedLink) {
         sharedLinks.removeAll { $0.id == link.id }
     }
 
-    // 更新分享设置
+    // Update share settings
     func updateShareLink(_ link: SharedLink, accessType: SharedLink.AccessType?, password: String?) {
         guard let index = sharedLinks.firstIndex(where: { $0.id == link.id }) else { return }
 
@@ -686,7 +686,7 @@ class ProjectShareManager: ObservableObject {
     }
 }
 
-// MARK: - 团队工作区
+// MARK: - Team Workspace
 
 class TeamWorkspaceManager: ObservableObject {
     static let shared = TeamWorkspaceManager()
@@ -716,10 +716,10 @@ class TeamWorkspaceManager: ObservableObject {
     }
 
     enum TeamRole: String, Codable {
-        case owner = "所有者"
-        case admin = "管理员"
-        case member = "成员"
-        case guest = "访客"
+        case owner = "Owner"
+        case admin = "Admin"
+        case member = "Member"
+        case guest = "Guest"
     }
 
     struct WorkspaceSettings: Codable {
@@ -731,14 +731,14 @@ class TeamWorkspaceManager: ObservableObject {
 
     private init() {}
 
-    // 创建工作区
+    // Create workspace
     func createWorkspace(name: String, description: String = "") -> TeamWorkspace {
         let workspace = TeamWorkspace(
             id: UUID(),
             name: name,
             description: description,
             createdAt: Date(),
-            ownerId: UUID(),  // 当前用户ID
+            ownerId: UUID(),  // Current user ID
             projectIds: [],
             settings: WorkspaceSettings()
         )
@@ -746,28 +746,28 @@ class TeamWorkspaceManager: ObservableObject {
         return workspace
     }
 
-    // 切换工作区
+    // Switch workspace
     func switchWorkspace(_ workspace: TeamWorkspace) {
         currentWorkspace = workspace
-        // 加载工作区成员和项目
+        // Load workspace members and projects
     }
 
-    // 添加成员
+    // Add member
     func addMember(email: String, role: TeamRole) async throws {
-        // 发送邀请
+        // Send invitation
     }
 
-    // 移除成员
+    // Remove member
     func removeMember(_ member: TeamMember) {
         members.removeAll { $0.id == member.id }
     }
 
-    // 添加项目到工作区
+    // Add project to workspace
     func addProject(_ project: Project) {
         currentWorkspace?.projectIds.append(project.id)
     }
 
-    // 从工作区移除项目
+    // Remove project from workspace
     func removeProject(_ projectId: UUID) {
         currentWorkspace?.projectIds.removeAll { $0 == projectId }
     }

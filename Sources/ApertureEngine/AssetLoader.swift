@@ -1,10 +1,9 @@
 #if canImport(AVFoundation)
 import Foundation
 import AVFoundation
-import VideoEditorCore
+import ApertureCore
 
 /// Loads and manages AVFoundation assets from Core model data
-@available(iOS 15.0, macOS 12.0, *)
 public actor AssetLoader {
     
     private var cache: [URL: AVAsset] = [:]
@@ -17,10 +16,10 @@ public actor AssetLoader {
             return cached
         }
         
-        let asset = AVAsset(url: url)
+        let asset = AVURLAsset(url: url)
         let isPlayable = try await asset.load(.isPlayable)
         guard isPlayable else {
-            throw VideoEditorError.invalidAsset
+            throw ApertureError.invalidAsset
         }
         cache[url] = asset
         return asset
@@ -34,7 +33,6 @@ public actor AssetLoader {
     }
     
     /// Generate a thumbnail from a video asset
-    @available(iOS 16, macOS 13, *)
     public func generateThumbnail(from url: URL, at time: Double) async throws -> CGImage {
         let asset = try await loadAsset(from: url)
         let imageGenerator = AVAssetImageGenerator(asset: asset)
@@ -43,8 +41,21 @@ public actor AssetLoader {
         imageGenerator.requestedTimeToleranceBefore = .zero
         
         let cmTime = CMTime(seconds: time, preferredTimescale: 600)
-        let cgImage = try await imageGenerator.image(at: cmTime).image
-        return cgImage
+        return try await withCheckedThrowingContinuation { continuation in
+            imageGenerator.generateCGImagesAsynchronously(forTimes: [NSValue(time: cmTime)]) { _, image, _, result, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+
+                guard let image, result == .succeeded else {
+                    continuation.resume(throwing: ApertureError.invalidAsset)
+                    return
+                }
+
+                continuation.resume(returning: image)
+            }
+        }
     }
     
     /// Clear the asset cache

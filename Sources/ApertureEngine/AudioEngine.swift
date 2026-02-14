@@ -2,15 +2,14 @@
 import Foundation
 import AVFoundation
 import Accelerate
-import VideoEditorCore
+import ApertureCore
 
 /// Audio processing engine with advanced features
-@available(iOS 15.0, macOS 12.0, *)
-public class AudioEngine {
+public actor AudioEngine {
 
     public static let shared = AudioEngine()
 
-    public init() {}
+    private init() {}
 
     // MARK: - Waveform Generation
 
@@ -107,25 +106,33 @@ public class AudioEngine {
     }
 
     /// Extract audio from a video file
-    public func extractAudio(from videoURL: URL, outputURL: URL) async throws {
-        let asset = AVAsset(url: videoURL)
+    public func extractAudio(from videoURL: URL, outputURL: URL) async throws -> Double? {
+        let asset = AVURLAsset(url: videoURL)
 
         guard let exportSession = AVAssetExportSession(
             asset: asset,
             presetName: AVAssetExportPresetAppleM4A
         ) else {
-            throw VideoEditorError.exportFailed("Failed to create export session")
+            throw ApertureError.exportFailed("Failed to create export session")
         }
 
         try? FileManager.default.removeItem(at: outputURL)
         exportSession.outputURL = outputURL
         exportSession.outputFileType = .m4a
 
-        await exportSession.export()
+        try await exportSession.export(to: outputURL, as: .m4a)
 
-        guard exportSession.status == .completed else {
-            throw VideoEditorError.exportFailed("Audio extraction failed")
+        for await state in exportSession.states() {
+            switch state {
+                case .exporting(progress: let completed):
+                    return Double(completed.fractionCompleted)
+                case .pending, .waiting:
+                    throw ApertureError.exportFailed("Export session is in an unexpected state: \(state)")
+                @unknown default:
+                    throw ApertureError.exportFailed("Export session is in an unexpected state: \(state)")
+            }
         }
+        return nil
     }
 }
 #endif

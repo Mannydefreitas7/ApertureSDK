@@ -2,8 +2,8 @@
 import SwiftUI
 import AVKit
 import AVFoundation
-import VideoEditorCore
-import VideoEditorEngine
+import ApertureCore
+import ApertureEngine
 
 /// A lower-level preview view for displaying rendered frames.
 ///

@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,8 +6,8 @@ import PackageDescription
 let package = Package(
     name: "ApertureSDK",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v18),
+        .macOS(.v15)
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
@@ -27,8 +27,8 @@ let package = Package(
             name: "ApertureUI",
             targets: ["ApertureUI"]),
         .library(
-            name: "ApertureAssets",
-            targets: ["ApertureAssets"]),
+            name: "ApertureLib",
+            targets: ["ApertureLib"]),
         .library(
             name: "ApertureAI",
             targets: ["ApertureAI"]),
@@ -43,7 +43,7 @@ let package = Package(
                 "ApertureEngine",
                 "ApertureExport",
                 "ApertureUI",
-                "ApertureAssets",
+                "ApertureLib",
                 "ApertureAI",
             ]),
         .target(
@@ -56,7 +56,8 @@ let package = Package(
             dependencies: ["ApertureCore", "ApertureEngine"]),
         .target(
             name: "ApertureUI",
-            dependencies: ["ApertureCore", "ApertureEngine", "ApertureExport"]),
+            dependencies: ["ApertureCore", "ApertureEngine", "ApertureExport"],
+            exclude: ["iOS", "macOS"]),
         .target(
             name: "ApertureAssets",
             dependencies: ["ApertureCore"],

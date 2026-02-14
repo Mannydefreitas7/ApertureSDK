@@ -1,19 +1,19 @@
 import Foundation
 import AVFoundation
 
-/// 合成构建器 - 将项目转换为 AVComposition
+/// Composition Builder - Converts project to AVComposition
 class CompositionBuilder {
 
-    /// 构建合成
+    /// Build composition
     static func buildComposition(from project: Project) async throws -> CompositionResult {
         let composition = AVMutableComposition()
         let videoComposition = AVMutableVideoComposition()
 
-        // 创建合成轨道
+        // Create composition tracks
         var compositionVideoTracks: [AVMutableCompositionTrack] = []
         var compositionAudioTracks: [AVMutableCompositionTrack] = []
 
-        // 处理视频轨道
+        // Process video tracks
         for track in project.videoTracks where !track.isMuted && track.isVisible {
             guard let compositionTrack = composition.addMutableTrack(
                 withMediaType: .video,
@@ -27,7 +27,7 @@ class CompositionBuilder {
             }
         }
 
-        // 处理音频轨道
+        // Process audio tracks
         for track in project.audioTracks where !track.isMuted {
             guard let compositionTrack = composition.addMutableTrack(
                 withMediaType: .audio,
@@ -40,7 +40,7 @@ class CompositionBuilder {
                 try await insertClip(clip, into: compositionTrack, mediaType: .audio)
             }
 
-            // 处理视频片段中的音频
+            // Process audio from video clips
             for videoTrack in project.videoTracks where !videoTrack.isMuted {
                 for clip in videoTrack.clips where clip.type == .video {
                     try await insertClip(clip, into: compositionTrack, mediaType: .audio)
@@ -48,11 +48,11 @@ class CompositionBuilder {
             }
         }
 
-        // 配置视频合成
+        // Configure video composition
         videoComposition.renderSize = project.settings.resolution.size
         videoComposition.frameDuration = CMTime(value: 1, timescale: CMTimeScale(project.settings.frameRate))
 
-        // 创建视频指令
+        // Create video instruction
         let instruction = AVMutableVideoCompositionInstruction()
         instruction.timeRange = CMTimeRange(start: .zero, duration: project.duration)
 
@@ -71,7 +71,7 @@ class CompositionBuilder {
         )
     }
 
-    /// 插入片段到轨道
+    /// Insert clip into track
     private static func insertClip(
         _ clip: Clip,
         into track: AVMutableCompositionTrack,
@@ -80,7 +80,7 @@ class CompositionBuilder {
         let assetTracks = try await clip.asset.loadTracks(withMediaType: mediaType)
 
         guard let assetTrack = assetTracks.first else {
-            // 如果是音频轨道但没有音频，跳过
+            // If audio track but no audio, skip
             return
         }
 
@@ -90,7 +90,7 @@ class CompositionBuilder {
             at: clip.startTime
         )
 
-        // 应用速度变化
+        // Apply speed changes
         if clip.speed != 1.0 {
             let scaledDuration = CMTimeMultiplyByFloat64(
                 clip.sourceTimeRange.duration,
@@ -103,30 +103,30 @@ class CompositionBuilder {
         }
     }
 
-    /// 构建仅用于预览的合成（可能是部分片段）
+    /// Build composition for preview only (may be partial clips)
     static func buildPreviewComposition(
         from project: Project,
         timeRange: CMTimeRange? = nil
     ) async throws -> CompositionResult {
-        // 对于预览，使用完整构建
-        // 后续可以优化为只构建需要的时间范围
+        // For preview, use full build
+        // Can be optimized later to build only required time range
         return try await buildComposition(from: project)
     }
 }
 
-/// 合成结果
+/// Composition result
 struct CompositionResult {
     let composition: AVMutableComposition
     let videoComposition: AVMutableVideoComposition
 
-    /// 获取用于导出的 AVAssetExportSession
+    /// Get AVAssetExportSession for export
     func makeExportSession(preset: String = AVAssetExportPresetHighestQuality) -> AVAssetExportSession? {
         let session = AVAssetExportSession(asset: composition, presetName: preset)
         session?.videoComposition = videoComposition
         return session
     }
 
-    /// 获取用于播放的 AVPlayerItem
+    /// Get AVPlayerItem for playback
     func makePlayerItem() -> AVPlayerItem {
         let item = AVPlayerItem(asset: composition)
         item.videoComposition = videoComposition

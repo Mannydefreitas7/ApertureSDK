@@ -1,7 +1,7 @@
 #if canImport(AVFoundation)
 import Foundation
 import AVFoundation
-import VideoEditorCore
+import ApertureCore
 
 /// High-level video editing operations
 @available(iOS 15.0, macOS 12.0, *)
@@ -28,7 +28,7 @@ public class VideoEditor {
             asset: asset,
             presetName: AVAssetExportPresetHighestQuality
         ) else {
-            throw VideoEditorError.exportFailed("Failed to create export session")
+            throw ApertureError.exportFailed("Failed to create export session")
         }
         
         try? FileManager.default.removeItem(at: outputURL)
@@ -42,7 +42,7 @@ public class VideoEditor {
         await exportSession.export()
         
         guard exportSession.status == .completed else {
-            throw VideoEditorError.exportFailed("Trim export failed")
+            throw ApertureError.exportFailed("Trim export failed")
         }
     }
     
@@ -86,7 +86,7 @@ public class VideoEditor {
     /// Merge multiple video URLs into one
     public func merge(urls: [URL], outputURL: URL) async throws {
         guard !urls.isEmpty else {
-            throw VideoEditorError.invalidAsset
+            throw ApertureError.invalidAsset
         }
         
         let composition = AVMutableComposition()
@@ -95,7 +95,7 @@ public class VideoEditor {
             withMediaType: .video,
             preferredTrackID: kCMPersistentTrackID_Invalid
         ) else {
-            throw VideoEditorError.exportFailed("Failed to create video track")
+            throw ApertureError.exportFailed("Failed to create video track")
         }
         
         let audioTrack = composition.addMutableTrack(
@@ -129,7 +129,7 @@ public class VideoEditor {
             asset: composition,
             presetName: AVAssetExportPresetHighestQuality
         ) else {
-            throw VideoEditorError.exportFailed("Failed to create export session")
+            throw ApertureError.exportFailed("Failed to create export session")
         }
         
         try? FileManager.default.removeItem(at: outputURL)
@@ -140,7 +140,7 @@ public class VideoEditor {
         await exportSession.export()
         
         guard exportSession.status == .completed else {
-            throw VideoEditorError.exportFailed("Merge failed")
+            throw ApertureError.exportFailed("Merge failed")
         }
     }
 }

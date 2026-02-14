@@ -4,7 +4,7 @@ import CoreImage
 import ApertureCore
 
 /// Renders effects defined in Core models using CoreImage filters
-actor EffectRenderer {
+public actor EffectRenderer {
 
     static let shared = EffectRenderer()
 

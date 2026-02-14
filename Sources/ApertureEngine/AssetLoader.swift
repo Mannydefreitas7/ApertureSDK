@@ -4,7 +4,6 @@ import AVFoundation
 import ApertureCore
 
 /// Loads and manages AVFoundation assets from Core model data
-@available(iOS 15.0, macOS 12.0, *)
 public actor AssetLoader {
     
     private var cache: [URL: AVAsset] = [:]
@@ -34,7 +33,6 @@ public actor AssetLoader {
     }
     
     /// Generate a thumbnail from a video asset
-    @available(iOS 16, macOS 13, *)
     public func generateThumbnail(from url: URL, at time: Double) async throws -> CGImage {
         let asset = try await loadAsset(from: url)
         let imageGenerator = AVAssetImageGenerator(asset: asset)

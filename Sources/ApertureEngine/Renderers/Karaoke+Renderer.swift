@@ -6,10 +6,10 @@
 //
 import SwiftUI
 
-actor KaraokeRenderer {
+public actor KaraokeRenderer {
     static let shared = KaraokeRenderer()
 
-    @Published var currentSubtitle: KaraokeSubtitle?
+    var currentSubtitle: KaraokeSubtitle?
 
     private init() {}
 

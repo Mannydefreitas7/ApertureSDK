@@ -6,7 +6,7 @@
 //
 import SwiftUI
 
-actor PathTextRenderer {
+public actor PathTextRenderer {
     static let shared = PathTextRenderer()
 
     private init() {}

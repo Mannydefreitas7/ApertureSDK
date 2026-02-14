@@ -29,9 +29,9 @@ public struct AudioVisualization {
 public actor AudioVisualizer {
     public static let shared = AudioVisualizer()
 
-    @Published public var waveformData: [Float] = []
-    @Published public var spectrumData: [Float] = []
-    @Published public var isAnalyzing = false
+    public var waveformData: [Float] = []
+    public var spectrumData: [Float] = []
+    public var isAnalyzing = false
 
     nonisolated(unsafe) private let fftSetup: vDSP_DFT_Setup?
     private let fftLength = 2048

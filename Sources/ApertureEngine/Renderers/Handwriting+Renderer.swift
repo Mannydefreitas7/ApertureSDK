@@ -6,7 +6,7 @@
 //
 import SwiftUI
 
-actor HandwritingRenderer {
+public actor HandwritingRenderer {
     static let shared = HandwritingRenderer()
 
     private init() {}

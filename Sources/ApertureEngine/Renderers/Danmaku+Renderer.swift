@@ -6,13 +6,13 @@
 //
 import SwiftUI
 
-class DanmakuRenderer: ObservableObject {
+public actor DanmakuRenderer {
     static let shared = DanmakuRenderer()
 
-    @Published var danmakus: [Danmaku] = []
-    @Published var isEnabled = true
-    @Published var opacity: Float = 1.0
-    @Published var density: Float = 1.0  // Danmaku density
+    var danmakus: [Danmaku] = []
+    var isEnabled = true
+    var opacity: Float = 1.0
+    var density: Float = 1.0  // Danmaku density
 
     private init() {}
 

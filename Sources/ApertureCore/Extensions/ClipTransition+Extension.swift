@@ -7,7 +7,41 @@
 
 import AVFoundation
 
-extension Transition {
+extension ClipTransition {
+
+        // MARK: - Factory Methods
+
+    public static func crossDissolve(duration: Double = 0.5) -> Self {
+        .init(type: .crossDissolve, duration: duration)
+    }
+
+    public static func slideLeft(duration: Double = 0.5) -> Transition {
+        .init(type: .slideLeft, duration: duration)
+    }
+
+    public static func slideRight(duration: Double = 0.5) -> Transition {
+        .init(type: .slideRight, duration: duration)
+    }
+
+    public static func wipeRight(duration: Double = 0.5) -> Transition {
+        .init(type: .wipeRight, duration: duration)
+    }
+
+    public static func wipeLeft(duration: Double = 0.5) -> Transition {
+        .init(type: .wipeLeft, duration: duration)
+    }
+
+    public static func fade(duration: Double = 0.5) -> Transition {
+        .init(type: .fade, duration: duration)
+    }
+
+    public static func zoom(duration: Double = 0.5) -> Transition {
+        .init(type: .zoom, duration: duration)
+    }
+
+    public static func dissolve(duration: Double = 0.5) -> Transition {
+        .init(type: .dissolve, duration: duration)
+    }
 
     public enum TransitionType: String {
         case none

@@ -3,54 +3,11 @@ import Foundation
 import AVFoundation
 import Combine
 
-/// Export preset configurations
-public enum ExportPreset: Sendable {
-    case hd720p
-    case hd1080p
-    case hd4K
-    case instagram
-    case twitter
-    case custom(width: Int, height: Int, bitrate: Int)
-    
-    var resolution: CGSize {
-        switch self {
-        case .hd720p:
-            return CGSize(width: 1280, height: 720)
-        case .hd1080p:
-            return CGSize(width: 1920, height: 1080)
-        case .hd4K:
-            return CGSize(width: 3840, height: 2160)
-        case .instagram:
-            return CGSize(width: 1080, height: 1080)
-        case .twitter:
-            return CGSize(width: 1280, height: 720)
-        case .custom(let width, let height, _):
-            return CGSize(width: width, height: height)
-        }
-    }
-    
-    var bitrate: Int {
-        switch self {
-        case .hd720p:
-            return 5_000_000
-        case .hd1080p:
-            return 8_000_000
-        case .hd4K:
-            return 20_000_000
-        case .instagram:
-            return 5_000_000
-        case .twitter:
-            return 5_000_000
-        case .custom(_, _, let bitrate):
-            return bitrate
-        }
-    }
-}
 
 /// Manages video export operations
-public actor ExportManager {
+public actor ExportService {
     private var currentExportSession: AVAssetExportSession?
-    static let shared = ExportManager()
+    static let shared = ExportService()
     var progress: Double?
 
     private init() {}
